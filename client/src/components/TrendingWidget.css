@@ -1,0 +1,12 @@
+.trending-widget { 
+  background: #fff; 
+  padding: 1.5rem; 
+  border-radius: 8px; 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
+}
+.trending-widget h3 { margin-top: 0; }
+.trending-widget ul { list-style: none; padding: 0; margin: 0; }
+.trending-widget li { border-bottom: 1px solid #f3f4f6; padding: 0.75rem 0; }
+.trending-widget li:last-child { border-bottom: none; }
+.trending-widget a { text-decoration: none; color: #374151; font-weight: 600; }
+.trending-widget a:hover { color: #4f46e5; }

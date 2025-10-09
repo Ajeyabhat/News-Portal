@@ -1,0 +1,7 @@
+.deadlines-widget { background: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 2rem; }
+.deadlines-widget h3 { margin-top: 0; }
+.deadlines-widget ul { list-style: none; padding: 0; margin: 0; }
+.deadlines-widget li { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid #f3f4f6; }
+.deadlines-widget li:last-child { border-bottom: none; }
+.event-date { font-weight: 600; color: #4f46e5; background-color: #eef2ff; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.9rem; }
+.event-title { margin: 0; color: #374151; }

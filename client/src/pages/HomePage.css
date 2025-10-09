@@ -1,0 +1,12 @@
+.home-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+/* On larger screens, use a two-column layout */
+@media (min-width: 992px) {
+  .home-layout {
+    grid-template-columns: 2fr 1fr; /* Main content is twice as wide as the sidebar */
+  }
+}
