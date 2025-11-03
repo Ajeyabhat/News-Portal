@@ -1,46 +1,77 @@
 .form-container {
-  max-width: 400px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 450px;
+  margin: var(--spacing-xl) auto;
+  padding: var(--spacing-lg);
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
 }
 
 .form-container h2 {
   text-align: center;
-  margin-bottom: 1.5rem;
-  color: #1f2937;
+  margin-bottom: var(--spacing-lg);
+  color: var(--primary-color);
+  font-size: 2rem;
 }
 
 .form-container form div {
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.form-container label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  color: var(--text-color);
+  font-weight: 600;
+  font-size: 1rem;
 }
 
 .form-container input[type="text"],
 .form-container input[type="email"],
 .form-container input[type="password"] {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
   font-size: 1rem;
-  box-sizing: border-box; /* Important for padding and width */
+  box-sizing: border-box;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-container input[type="text"]:focus,
+.form-container input[type="email"]:focus,
+.form-container input[type="password"]:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.2);
+  outline: none;
 }
 
 .form-container input[type="submit"] {
   width: 100%;
-  padding: 0.75rem;
+  padding: var(--spacing-sm) var(--spacing-md);
   border: none;
-  border-radius: 6px;
-  background-color: #4f46e5;
+  border-radius: 8px;
+  background-color: var(--primary-color);
   color: white;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  margin-top: var(--spacing-sm);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .form-container input[type="submit"]:hover {
-  background-color: #4338ca;
+  background-color: #0056b3; /* Darker shade of primary */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.form-container input[type="submit"]:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }

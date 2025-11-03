@@ -1,25 +1,36 @@
-import React, { useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import SearchBar from './SearchBar'; // Import SearchBar
+import SearchBar from './SearchBar';
+import ThemeToggle from './ThemeToggle';
+import { HiMenu, HiX } from 'react-icons/hi'; // Import icons
 import './Navbar.css';
 
 const Navbar = () => {
-  const { isAuthenticated, user, logout } = useContext(AuthContext); // Get the user object
+  const { isAuthenticated, user, logout } = useContext(AuthContext);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // New state for mobile menu
 
   const authLinks = (
-    <ul>
-      {/* New: Show Admin Dashboard link only if user is an Admin */}
-      {user && user.role === 'Admin' && (
-        <li><Link to="/admin">Admin Dashboard</Link></li>
+    <div className="user-menu">
+      <button onClick={() => setDropdownOpen(!dropdownOpen)} className="user-menu-button">
+        Welcome, {user ? user.username : ''}
+      </button>
+      {dropdownOpen && (
+        <ul className="dropdown-menu">
+          {user && user.role === 'Admin' && (
+            <li><Link to="/admin" onClick={() => setDropdownOpen(false)}>Admin Panel</Link></li>
+          )}
+          <li><Link to="/bookmarks" onClick={() => setDropdownOpen(false)}>My Bookmarks</Link></li>
+          <li><button onClick={() => { logout(); setDropdownOpen(false); }}>Logout</button></li>
+        </ul>
       )}
-      <li><Link to="/bookmarks">My Bookmarks</Link></li>
-      <li><button onClick={logout}>Logout</button></li>
-    </ul>
+    </div>
   );
 
   const guestLinks = (
-    <ul>
+    <ul className="nav-links">
+      <li><Link to="/">Home</Link></li>
       <li><Link to="/register">Register</Link></li>
       <li><Link to="/login">Login</Link></li>
     </ul>
@@ -30,9 +41,16 @@ const Navbar = () => {
       <h1>
         <Link to="/">News Portal</Link>
       </h1>
-         <SearchBar /> {/* Add the SearchBar */}
+      <SearchBar />
+      
+      <div className="menu-icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+        {mobileMenuOpen ? <HiX /> : <HiMenu />}
+      </div>
 
-      {isAuthenticated ? authLinks : guestLinks}
+      <div className={`nav-menu ${mobileMenuOpen ? 'active' : ''}`}>
+        <ThemeToggle />
+        {isAuthenticated ? authLinks : guestLinks}
+      </div>
     </nav>
   );
 };

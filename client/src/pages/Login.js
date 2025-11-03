@@ -1,6 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import './AuthForms.css';
 
@@ -12,6 +11,8 @@ function Login() {
     password: '',
   });
 
+  // This hook still works perfectly. It will run when
+  // AuthContext confirms the user is logged in.
   useEffect(() => {
     if (isAuthenticated) {
       if (user && user.role === 'Admin') {
@@ -31,12 +32,14 @@ function Login() {
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
-      const user = { email, password };
-      const res = await axios.post('http://localhost:5000/api/login', user);
-      login(res.data.token);
+      // This is the only change in this function!
+      // We call the context's login, which calls Firebase.
+      await login(email, password);
+      // The useEffect above will handle redirection.
+
     } catch (err) {
-      console.error(err.response.data);
-      alert('Login Failed: ' + (err.response.data.message || 'Server error'));
+      console.error(err);
+      alert('Login Failed: ' + (err.message || 'Invalid credentials'));
     }
   };
 

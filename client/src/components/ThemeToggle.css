@@ -1,0 +1,25 @@
+.theme-toggle-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--navbar-text); /* Matches navbar text */
+  cursor: pointer;
+  font-size: 1.25rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+.theme-toggle-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1); /* Subtle hover */
+}
+
+/* Specific overrides for dark mode */
+body.dark .theme-toggle-btn {
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+body.dark .theme-toggle-btn:hover {
+  background-color: var(--card-bg);
+}

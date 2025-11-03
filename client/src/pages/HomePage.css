@@ -7,6 +7,61 @@
 /* On larger screens, use a two-column layout */
 @media (min-width: 992px) {
   .home-layout {
-    grid-template-columns: 2fr 1fr; /* Main content is twice as wide as the sidebar */
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   }
+}
+
+.main-content h2 {
+  font-size: 1.75rem;
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0.75rem;
+}
+
+/* This is the updated section */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  
+  /* --- ADD THESE TWO LINES --- */
+  position: sticky; /* Makes the sidebar "stick" */
+  top: 2rem; /* The space from the top of the screen */
+  align-self: start; /* Fixes a potential stretching issue */
+}
+
+.category-buttons {
+  margin-bottom: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.category-buttons button {
+  padding: 0.6rem 1.2rem;
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  color: var(--subtle-text);
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.category-buttons button:hover {
+  background-color: var(--secondary-bg);
+  color: var(--secondary-text);
+  border-color: var(--secondary-bg);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.category-buttons button.active {
+  background-color: var(--primary-color);
+  color: var(--primary-text);
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
 }

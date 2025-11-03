@@ -1,50 +1,134 @@
-.App {
-  text-align: center;
+:root {
+  --primary-color: #007bff;
+  --secondary-color: #6c757d;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+  --warning-color: #ffc107;
+  --info-color: #17a2b8;
+
+  --font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --font-size-base: 1rem;
+  --line-height-base: 1.6;
+
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 3rem;
+
+  --heading-font-weight: 700;
+  --heading-line-height: 1.2;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* Light Theme */
+.light {
+  --background-color: #f4f7f6;
+  --text-color: #333333;
+  --primary-text: #0056b3;
+  --secondary-text: #555555;
+  --border-color: #e0e0e0;
+  --card-bg: #ffffff;
+  --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  --navbar-bg: #ffffff;
+  --navbar-text: #333333;
+  --navbar-border: #e0e0e0;
+  --footer-bg: #343a40;
+  --footer-text: #ffffff;
+  --input-bg: #ffffff;
+  --input-border: #ced4da;
+  --hover-bg-color: #f0f0f0;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+/* Dark Theme */
+.dark {
+  --background-color: #282c34;
+  --text-color: #e0e0e0;
+  --primary-text: #90caf9;
+  --secondary-text: #bbbbbb;
+  --border-color: #444444;
+  --card-bg: #3a3f47;
+  --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  --navbar-bg: #20232a;
+  --navbar-text: #e0e0e0;
+  --navbar-border: #444444;
+  --footer-bg: #20232a;
+  --footer-text: #e0e0e0;
+  --input-bg: #3a3f47;
+  --input-border: #555555;
+  --hover-bg-color: #33373e;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  margin: 0;
+  padding: 0;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.App-link {
-  color: #61dafb;
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--heading-font-weight);
+  line-height: var(--heading-line-height);
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+  color: var(--primary-text);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+h1 {
+  font-size: 2.5rem;
 }
-.card-link {
-  text-decoration: none;
+
+h2 {
+  font-size: 2rem;
 }
+
+h3 {
+  font-size: 1.75rem;
+}
+
+h4 {
+  font-size: 1.5rem;
+}
+
+h5 {
+  font-size: 1.25rem;
+}
+
+h6 {
+  font-size: 1rem;
+}
+
+p {
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Styles for the main Layout component */
 .site-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
+/* Styles for the main content area within the Layout */
 .container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
   flex: 1;
+}
+
+/* Global style for article card links (removes underline) */
+.card-link {
+  text-decoration: none;
+}
+
+/* Global style for the article grid layout */
+.article-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
 }

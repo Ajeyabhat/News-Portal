@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import '../pages/AdminDashboard.css'; // Reusing the CSS
+import './AdminContentPage.css';
 
-const ContentManager = () => {
-  // State for the editor form
+const AdminContentPage = () => {
   const [formData, setFormData] = useState({
     title: '', summary: '', imageUrl: '', source: '', category: '',
   });
-  // State for the inbox
   const [rawArticles, setRawArticles] = useState([]);
-  // State to track which raw article is being edited
   const [selectedRawArticleId, setSelectedRawArticleId] = useState(null);
 
   const fetchRawArticles = async () => {
@@ -57,7 +54,6 @@ const ContentManager = () => {
       setFormData({ title: '', summary: '', imageUrl: '', source: '', category: '' });
       setSelectedRawArticleId(null);
       fetchRawArticles();
-
     } catch (err) {
       console.error(err.response.data);
       alert('Error publishing article.');
@@ -72,7 +68,13 @@ const ContentManager = () => {
           {rawArticles.length > 0 ? (
             rawArticles.map(raw => (
               <div key={raw._id} className="inbox-item">
-                <p>{raw.title}</p>
+                <div className="inbox-item-content">
+                  <p>{raw.title}</p>
+                  {/* New "View Source" Link */}
+                  <a href={raw.url} target="_blank" rel="noopener noreferrer" className="view-source-link">
+                    View Source
+                  </a>
+                </div>
                 <button onClick={() => handleCurate(raw)}>Curate</button>
               </div>
             ))
@@ -83,13 +85,14 @@ const ContentManager = () => {
       </div>
       <div className="editor-panel">
         <h2>Editor</h2>
+        {/* Your form JSX is identical */}
         <form onSubmit={onSubmit}>
           <div className="form-group">
             <label>Title</label>
             <input type="text" name="title" value={title} onChange={onChange} required />
           </div>
           <div className="form-group">
-            <label>Summary (ELI10)</label>
+            <label>Summary</label>
             <textarea rows="5" name="summary" value={summary} onChange={onChange} required></textarea>
           </div>
           <div className="form-group">
@@ -111,4 +114,4 @@ const ContentManager = () => {
   );
 };
 
-export default ContentManager;
+export default AdminContentPage;

@@ -2,13 +2,20 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+// We no longer need bcryptjs, jsonwebtoken, nodemailer, or crypto
+// const bcrypt = require('bcryptjs');
+// const jwt = require('jsonwebtoken');
+// const nodemailer = require('nodemailer');
+// const crypto = require('crypto');
+
+// Import Models
 const User = require('./models/User');
 const Article = require('./models/Article');
 const RawArticle = require('./models/RawArticle');
 const Event = require('./models/Event');
-const auth = require('./middleware/auth');
+
+// Import Middleware
+const auth = require('./middleware/auth'); // This is our new Firebase auth middleware
 
 const app = express();
 const PORT = 5000;
@@ -16,6 +23,8 @@ const PORT = 5000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// --- (We removed the Nodemailer transporter) ---
 
 // Connect to MongoDB Atlas
 mongoose.connect(process.env.MONGO_URI)
@@ -29,53 +38,44 @@ app.get('/', (req, res) => {
 });
 
 // --- USER AUTH & DATA ROUTES ---
+
+// This route is now only for saving user details to our database
+// after Firebase has already created the user.
 app.post('/api/register', async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email } = req.body;
+
+    // Check if user already exists in our database
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ message: 'User already exists.' });
+      return res.status(400).json({ message: 'User already exists in our database.' });
     }
-    user = new User({ username, email, password });
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
+
+    // Create a new user in our database
+    // We don't save a password here, as Firebase handles that.
+    user = new User({
+      username,
+      email,
+      // isVerified will be true by default in the new User model
+    });
+    
     await user.save();
-    res.status(201).json({ message: 'User registered successfully!' });
+    res.status(201).json(user);
+
   } catch (error) {
     console.error(error.message);
     res.status(500).send('Server error');
   }
 });
 
-app.post('/api/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials.' });
-    }
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials.' });
-    }
-    const payload = { user: { id: user.id, role: user.role } };
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: '5h' },
-      (err, token) => {
-        if (err) throw err;
-        res.json({ token, role: user.role });
-      }
-    );
-  } catch (error) {
-    console.error(error.message);
-    res.status(500).send('Server error');
-  }
-});
+// --- (We removed the /api/login route, Firebase handles it) ---
+// --- (We removed the /api/verify-otp route, Firebase handles it) ---
 
+// This route is now the MOST IMPORTANT auth route.
+// It gets our MongoDB user data (like role) using the Firebase token.
 app.get('/api/auth', auth, async (req, res) => {
   try {
+    // req.user is now attached by our new Firebase auth middleware
     const user = await User.findById(req.user.id).select('-password');
     res.json(user);
   } catch (err) {
@@ -191,7 +191,7 @@ app.post('/api/articles', auth, async (req, res) => {
     res.status(201).json(article);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).send('Server error');
   }
 });
 
@@ -200,7 +200,7 @@ app.get('/api/articles', async (req, res) => {
     const { category } = req.query;
     const filter = {};
     if (category) {
-      filter.category = category;
+      filter.category = { $regex: new RegExp(`^${category}$`, 'i') };
     }
     const articles = await Article.find(filter).sort({ createdAt: -1 });
     res.json(articles);

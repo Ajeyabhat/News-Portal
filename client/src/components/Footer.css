@@ -1,7 +1,45 @@
 .footer {
-  background-color: #333;
-  color: white;
+  background-color: var(--footer-bg);
+  color: var(--footer-text);
+  padding-top: 4rem;
+  border-top: 1px solid var(--footer-border);
+}
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 3rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem 2rem;
+}
+.footer-section h4 {
+  color: var(--footer-heading);
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.footer-section p {
+  line-height: 1.7;
+}
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+}
+.footer-section li {
+  margin-bottom: 0.75rem;
+}
+.footer-section a {
+  color: var(--footer-text);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.footer-section a:hover {
+  color: var(--footer-heading);
+}
+.footer-bottom {
   text-align: center;
-  padding: 1rem;
-  margin-top: auto; /* Pushes footer to the bottom */
+  padding: 1.5rem;
+  background-color: #0d1117; /* Even darker, stays constant */
+  border-top: 1px solid var(--footer-border);
+  font-size: 0.9rem;
 }

@@ -1,0 +1,12 @@
+.admin-layout {
+  display: flex;
+  min-height: calc(100vh - 150px); /* Adjust based on navbar/footer height */
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.admin-content {
+  flex-grow: 1;
+  padding: 2rem;
+  transition: all 0.3s ease;
+}

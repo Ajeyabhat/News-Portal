@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './AuthForms.css'; // New: Import the CSS
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import { auth as firebaseAuth } from '../firebase'; // Import from our firebase.js
+import './AuthForms.css';
 
 function Register() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -18,22 +22,34 @@ function Register() {
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
-      const newUser = {
-        username,
-        email,
-        password,
-      };
+      // --- Step 1: Create the user in Firebase Authentication ---
+      const userCredential = await createUserWithEmailAndPassword(firebaseAuth, email, password);
+      console.log('Firebase user created.');
 
-      const res = await axios.post('http://localhost:5000/api/register', newUser);
-      console.log(res.data);
+      // --- Step 2: Send the verification email (Firebase handles this!) ---
+      await sendEmailVerification(userCredential.user);
+      console.log('Firebase verification email sent.');
+      alert('Verification email sent! Please check your inbox.');
+
+      // --- Step 3: Create the user in our *own* MongoDB database ---
+      // This is the step that was likely failing.
+      const newUser = { username, email }; // We don't send the password
+      
+      // We are sending to our Node.js back-end
+      await axios.post('http://localhost:5000/api/register', newUser);
+      console.log('MongoDB user created.');
+
+      // --- Step 4: Redirect to the new Verify Page ---
+      navigate('/verify');
 
     } catch (err) {
-      console.error(err.response.data);
+      console.error('Registration Failed:', err.response ? err.response.data : err.message);
+      alert('Registration Failed: ' + (err.response?.data?.message || err.message));
     }
   };
 
   return (
-    <div className="form-container"> {/* New: Add this wrapper div */}
+    <div className="form-container">
       <h2>Register</h2>
       <form onSubmit={onSubmit}>
         <div>
