@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import SearchBar from './SearchBar';
 import ThemeToggle from './ThemeToggle';
+import LanguageToggle from './LanguageToggle';
 import { HiMenu, HiX } from 'react-icons/hi'; // Import icons
 import './Navbar.css';
 
@@ -48,6 +49,7 @@ const Navbar = () => {
       </div>
 
       <div className={`nav-menu ${mobileMenuOpen ? 'active' : ''}`}>
+        <LanguageToggle />
         <ThemeToggle />
         {isAuthenticated ? authLinks : guestLinks}
       </div>

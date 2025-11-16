@@ -1,11 +1,16 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import axios from 'axios';
+import toast from 'react-hot-toast';
+import ConfirmModal from '../../components/ConfirmModal';
 import './UserManagement.css';
 
 const UserManagement = () => {
   const { user: loggedInUser } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -22,21 +27,33 @@ const UserManagement = () => {
     try {
       await axios.put(`http://localhost:5000/api/users/${userId}/role`, { role: 'Admin' });
       fetchUsers();
+      toast.success('User promoted to admin successfully!');
     } catch (err) {
       console.error('Error promoting user:', err);
-      alert('Failed to promote user.');
+      toast.error('Failed to promote user.');
     }
   };
   
-  const handleDelete = async (userId) => {
-    if (window.confirm('Are you sure you want to delete this user? This cannot be undone.')) {
-      try {
-        await axios.delete(`http://localhost:5000/api/users/${userId}`);
-        fetchUsers();
-      } catch (err) {
-        console.error('Error deleting user:', err);
-        alert('Failed to delete user.');
-      }
+  const handleDeleteClick = (userId, userName) => {
+    setUserToDelete({ id: userId, name: userName });
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!userToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await axios.delete(`http://localhost:5000/api/users/${userToDelete.id}`);
+      fetchUsers();
+      toast.success('User deleted successfully!');
+      setShowDeleteModal(false);
+      setUserToDelete(null);
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      toast.error('Failed to delete user.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -68,7 +85,7 @@ const UserManagement = () => {
                 
                 {/* Show Delete button for any user that is NOT the currently logged-in user */}
                 {loggedInUser && user._id !== loggedInUser._id && (
-                   <button onClick={() => handleDelete(user._id)} className="delete-user-btn">
+                   <button onClick={() => handleDeleteClick(user._id, user.username)} className="delete-user-btn">
                     Delete
                   </button>
                 )}
@@ -82,6 +99,19 @@ const UserManagement = () => {
           ))}
         </tbody>
       </table>
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Delete User"
+        message={`Are you sure you want to delete ${userToDelete?.name}? This action cannot be undone.`}
+        isDangerous={true}
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => {
+          setShowDeleteModal(false);
+          setUserToDelete(null);
+        }}
+      />
     </div>
   );
 };

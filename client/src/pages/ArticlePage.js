@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import { AuthContext } from '../context/AuthContext';
 import { FaBookmark, FaRegBookmark } from 'react-icons/fa';
+import ConfirmModal from '../components/ConfirmModal';
 import './ArticlePage.css';
 
 const ArticlePage = () => {
@@ -12,6 +14,8 @@ const ArticlePage = () => {
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (user && article) {
@@ -21,33 +25,34 @@ const ArticlePage = () => {
 
   const handleBookmark = async () => {
     try {
-      await axios.post(`http://localhost:5000/api/articles/${id}/bookmark`);
-      // After successfully changing the bookmark, reload the user data
+      await axios.post(`/api/articles/${id}/bookmark`);
       loadUser(); 
-      alert('Bookmark status updated!');
+      toast.success('Bookmark status updated!');
     } catch (err) {
       console.error(err);
-      alert('Error updating bookmarks. Please make sure you are logged in.');
+      toast.error('Error updating bookmarks. Please make sure you are logged in.');
     }
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this article?')) {
-      try {
-        await axios.delete(`http://localhost:5000/api/articles/${id}`);
-        alert('Article deleted successfully.');
-        navigate('/'); // Redirect to homepage after deletion
-      } catch (err) {
-        console.error(err);
-        alert('Error deleting article.');
-      }
+    setIsDeleting(true);
+    try {
+      await axios.delete(`/api/articles/${id}`);
+      toast.success('Article deleted successfully.');
+      setShowDeleteModal(false);
+      navigate('/');
+    } catch (err) {
+      console.error(err);
+      toast.error('Error deleting article.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   useEffect(() => {
     const fetchArticle = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/articles/${id}`);
+        const res = await axios.get(`/api/articles/${id}`);
         setArticle(res.data);
       } catch (err) {
         console.error(err);
@@ -67,7 +72,7 @@ const ArticlePage = () => {
           <Link to={`/edit-article/${article._id}`} className="edit-link-btn">
             Edit
           </Link>
-          <button onClick={handleDelete} className="delete-btn">Delete</button>
+          <button onClick={() => setShowDeleteModal(true)} className="delete-btn">Delete</button>
         </div>
       )}
 
@@ -87,7 +92,25 @@ const ArticlePage = () => {
       </div>
 
       <img src={article.imageUrl} alt={article.title} className="article-image" />
-      <p className="article-content">{article.summary}</p>
+      
+      {/* This is the critical fix. 
+        We are now rendering the full 'content' from the rich text editor,
+        not the short 'summary'.
+      */}
+      <div 
+        className="article-content"
+        dangerouslySetInnerHTML={{ __html: article.content }}
+      />
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Delete Article"
+        message="Are you sure you want to delete this article? This action cannot be undone."
+        isDangerous={true}
+        isLoading={isDeleting}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteModal(false)}
+      />
     </div>
   );
 };

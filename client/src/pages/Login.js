@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { AuthContext } from '../context/AuthContext';
 import './AuthForms.css';
 
@@ -39,7 +40,7 @@ function Login() {
 
     } catch (err) {
       console.error(err);
-      alert('Login Failed: ' + (err.message || 'Invalid credentials'));
+      toast.error('Login Failed: ' + (err.message || 'Invalid credentials'));
     }
   };
 

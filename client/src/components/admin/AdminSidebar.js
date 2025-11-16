@@ -10,9 +10,6 @@ const AdminSidebar = () => {
       </div>
       <ul className="sidebar-menu">
         <li>
-          <NavLink to="/admin" end>Dashboard</NavLink>
-        </li>
-        <li>
           <NavLink to="/admin/content">Content</NavLink>
         </li>
         <li>

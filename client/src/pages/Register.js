@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { auth as firebaseAuth } from '../firebase'; // Import from our firebase.js
 import './AuthForms.css';
@@ -29,7 +30,7 @@ function Register() {
       // --- Step 2: Send the verification email (Firebase handles this!) ---
       await sendEmailVerification(userCredential.user);
       console.log('Firebase verification email sent.');
-      alert('Verification email sent! Please check your inbox.');
+      toast.success('Verification email sent! Please check your inbox.');
 
       // --- Step 3: Create the user in our *own* MongoDB database ---
       // This is the step that was likely failing.
@@ -44,7 +45,7 @@ function Register() {
 
     } catch (err) {
       console.error('Registration Failed:', err.response ? err.response.data : err.message);
-      alert('Registration Failed: ' + (err.response?.data?.message || err.message));
+      toast.error('Registration Failed: ' + (err.response?.data?.message || err.message));
     }
   };
 

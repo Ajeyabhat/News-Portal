@@ -1,0 +1,83 @@
+.empty-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-3xl) var(--spacing-lg);
+  min-height: 400px;
+  background: linear-gradient(135deg, var(--hover-bg-color), var(--border-light));
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--border-color);
+  text-align: center;
+}
+
+.empty-state-icon {
+  font-size: 72px;
+  margin-bottom: var(--spacing-2xl);
+  opacity: 0.7;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.empty-state-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--weight-extrabold);
+  color: var(--primary-text);
+  margin: 0 0 var(--spacing-md) 0;
+}
+
+.empty-state-description {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  margin: 0 0 var(--spacing-2xl) 0;
+  max-width: 500px;
+  line-height: var(--line-height-base);
+}
+
+.empty-state-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  color: white;
+  padding: var(--spacing-md) var(--spacing-2xl);
+  border-radius: var(--radius-full);
+  text-decoration: none;
+  font-weight: var(--weight-bold);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: var(--font-size-sm);
+  box-shadow: 0 4px 15px rgba(30, 64, 175, 0.25);
+}
+
+.empty-state-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(30, 64, 175, 0.35);
+}
+
+@media (max-width: 768px) {
+  .empty-state-container {
+    min-height: 300px;
+    padding: var(--spacing-2xl) var(--spacing-md);
+  }
+
+  .empty-state-icon {
+    font-size: 48px;
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .empty-state-title {
+    font-size: var(--font-size-xl);
+  }
+
+  .empty-state-description {
+    font-size: var(--font-size-sm);
+  }
+}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import './EventManager.css';
 
 const EventManager = () => {
@@ -28,8 +29,9 @@ const EventManager = () => {
       fetchEvents(); // Refresh the list
       setTitle('');
       setDate('');
+      toast.success('Event created successfully!');
     } catch (err) {
-      alert('Error creating event.');
+      toast.error('Error creating event.');
     }
   };
 
@@ -37,8 +39,9 @@ const EventManager = () => {
     try {
       await axios.delete(`http://localhost:5000/api/events/${id}`);
       fetchEvents(); // Refresh the list
+      toast.success('Event deleted successfully!');
     } catch (err) {
-      alert('Error deleting event.');
+      toast.error('Error deleting event.');
     }
   };
 

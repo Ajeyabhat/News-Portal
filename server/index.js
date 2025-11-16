@@ -2,17 +2,14 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-// We no longer need bcryptjs, jsonwebtoken, nodemailer, or crypto
-// const bcrypt = require('bcryptjs');
-// const jwt = require('jsonwebtoken');
-// const nodemailer = require('nodemailer');
-// const crypto = require('crypto');
+const admin = require('firebase-admin'); // For Firebase Auth
 
 // Import Models
 const User = require('./models/User');
 const Article = require('./models/Article');
 const RawArticle = require('./models/RawArticle');
 const Event = require('./models/Event');
+// const Subscriber = require('./models/Subscriber'); // We can add this back later
 
 // Import Middleware
 const auth = require('./middleware/auth'); // This is our new Firebase auth middleware
@@ -24,7 +21,54 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 
-// --- (We removed the Nodemailer transporter) ---
+const resolveLanguage = (value) => {
+  const normalized = String(value || 'en').toLowerCase();
+  if (normalized === 'kn') return 'kn';
+  if (normalized === 'all') return 'en'; // 'all' on create defaults to 'en'
+  return 'en';
+};
+const buildLanguageFilter = (language) => {
+  if (language === 'kn') {
+    return { contentLanguage: 'kn' };
+  }
+  if (language === 'all') {
+    return {}; // Return all articles regardless of language
+  }
+  // Default to English (missing contentLanguage field counts as English)
+  return {
+    $or: [
+      { contentLanguage: { $exists: false } },
+      { contentLanguage: null },
+      { contentLanguage: 'en' }
+    ]
+  };
+};
+const matchesLanguage = (article, language) => {
+  if (language === 'kn') {
+    return article.contentLanguage === 'kn';
+  }
+  if (language === 'all') {
+    return true; // All languages match
+  }
+  return !article.contentLanguage || article.contentLanguage === 'en';
+};
+
+// --- Firebase Admin SDK Initialization ---
+const serviceAccount = require('./config/serviceAccountKey.json');
+
+// This check prevents the "already exists" error on server restart
+if (!admin.apps.length) {
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      projectId: process.env.FIREBASE_PROJECT_ID,
+    });
+    console.log('Firebase Admin initialized.');
+  } catch (error) {
+    console.error('Firebase Admin initialization error:', error.message);
+  }
+}
+// ------------------------------------
 
 // Connect to MongoDB Atlas
 mongoose.connect(process.env.MONGO_URI)
@@ -43,7 +87,7 @@ app.get('/', (req, res) => {
 // after Firebase has already created the user.
 app.post('/api/register', async (req, res) => {
   try {
-    const { username, email } = req.body;
+    const { username, email } = req.body; // No password!
 
     // Check if user already exists in our database
     let user = await User.findOne({ email });
@@ -52,11 +96,10 @@ app.post('/api/register', async (req, res) => {
     }
 
     // Create a new user in our database
-    // We don't save a password here, as Firebase handles that.
     user = new User({
       username,
       email,
-      // isVerified will be true by default in the new User model
+      isVerified: true // We trust Firebase's email verification
     });
     
     await user.save();
@@ -68,10 +111,7 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// --- (We removed the /api/login route, Firebase handles it) ---
-// --- (We removed the /api/verify-otp route, Firebase handles it) ---
-
-// This route is now the MOST IMPORTANT auth route.
+// GET LOGGED IN USER (THIS IS THE NEW "LOGIN")
 // It gets our MongoDB user data (like role) using the Firebase token.
 app.get('/api/auth', auth, async (req, res) => {
   try {
@@ -86,8 +126,10 @@ app.get('/api/auth', auth, async (req, res) => {
 
 app.get('/api/users/bookmarks', auth, async (req, res) => {
   try {
+    const language = String(req.query.language || 'en').toLowerCase();
     const user = await User.findById(req.user.id).populate('bookmarks');
-    res.json(user.bookmarks);
+    const filtered = user.bookmarks.filter((article) => matchesLanguage(article, language));
+    res.json(filtered);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -183,26 +225,37 @@ app.post('/api/articles', auth, async (req, res) => {
     return res.status(403).json({ msg: 'Access denied. Admins only.' });
   }
   try {
-    const { title, summary, imageUrl, source, category } = req.body;
+    const { title, summary, content, imageUrl, source, category, language } = req.body;
     const newArticle = new Article({
-      title, summary, imageUrl, source, category, author: req.user.id
+      title,
+      summary,
+      content,
+      imageUrl,
+      source,
+      category,
+      contentLanguage: resolveLanguage(language),
+      author: req.user.id,
     });
     const article = await newArticle.save();
     res.status(201).json(article);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+    console.error('Article creation error:', err);
+    res.status(500).json({ message: err.message || 'Server error' });
   }
 });
 
 app.get('/api/articles', async (req, res) => {
   try {
     const { category } = req.query;
-    const filter = {};
+  const language = String(req.query.language || 'en').toLowerCase();
+  const languageFilter = buildLanguageFilter(language);
+  const filter = { ...languageFilter };
     if (category) {
       filter.category = { $regex: new RegExp(`^${category}$`, 'i') };
     }
-    const articles = await Article.find(filter).sort({ createdAt: -1 });
+    const articles = await Article.find(filter)
+      .select('title summary imageUrl source category contentLanguage createdAt')
+      .sort({ createdAt: -1 });
     res.json(articles);
   } catch (err) {
     console.error(err.message);
@@ -212,7 +265,11 @@ app.get('/api/articles', async (req, res) => {
 
 app.get('/api/articles/trending', async (req, res) => {
   try {
-    const trendingArticles = await Article.find().sort({ viewCount: -1 }).limit(5);
+    const language = String(req.query.language || 'en').toLowerCase();
+    const trendingArticles = await Article.find(buildLanguageFilter(language))
+      .select('title contentLanguage')
+      .sort({ viewCount: -1 })
+      .limit(5);
     res.json(trendingArticles);
   } catch (err) {
     console.error(err.message);
@@ -226,8 +283,15 @@ app.get('/api/search', async (req, res) => {
     if (!query) {
       return res.status(400).json({ msg: 'Search query is required' });
     }
+    const language = String(req.query.language || 'en').toLowerCase();
+    const languageFilter = buildLanguageFilter(language);
     const articles = await Article.find(
-      { $text: { $search: query } },
+      {
+        $and: [
+          { $text: { $search: query } },
+          languageFilter,
+        ],
+      },
       { score: { $meta: 'textScore' } }
     ).sort({ score: { $meta: 'textScore' } });
     res.json(articles);
@@ -242,10 +306,18 @@ app.put('/api/articles/:id', auth, async (req, res) => {
     return res.status(403).json({ msg: 'Access denied. Admins only.' });
   }
   try {
-    const { title, summary, imageUrl, source, category } = req.body;
+    const { title, summary, content, imageUrl, source, category, language } = req.body;
     const updatedArticle = await Article.findByIdAndUpdate(
       req.params.id,
-      { title, summary, imageUrl, source, category },
+      {
+        title,
+        summary,
+        content,
+        imageUrl,
+        source,
+        category,
+        contentLanguage: resolveLanguage(language),
+      },
       { new: true }
     );
     if (!updatedArticle) {

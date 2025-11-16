@@ -1,48 +1,196 @@
 .admin-sidebar {
-  width: 250px;
-  background-color: var(--card-bg);
-  color: var(--text-color);
-  padding: 1.5rem;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  transition: all 0.3s ease;
-  border-right: 1px solid var(--border-color);
+  height: 100%;
+  background: linear-gradient(180deg, var(--card-bg) 0%, var(--background-secondary) 100%);
+  border-right: 2px solid var(--border-light);
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-header {
-  margin-bottom: 2rem;
-  text-align: center;
+  padding: var(--spacing-lg);
+  border-bottom: 3px solid var(--primary-color);
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
 }
 
 .sidebar-header h2 {
-  color: var(--primary-color);
-  font-size: 1.8rem;
   margin: 0;
+  color: white;
+  font-size: var(--font-size-lg);
+  font-weight: var(--weight-extrabold);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .sidebar-menu {
   list-style: none;
-  padding: 0;
+  padding: var(--spacing-lg);
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  flex: 1;
 }
 
 .sidebar-menu li {
-  margin-bottom: 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .sidebar-menu a {
-  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  color: var(--text-secondary);
   text-decoration: none;
-  font-size: 1.1rem;
-  padding: 0.8rem 1rem;
-  display: block;
-  border-radius: 8px;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  border-radius: var(--radius-md);
+  font-weight: var(--weight-semibold);
+  transition: all var(--transition-fast);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-left: 4px solid transparent;
+  position: relative;
+  overflow: hidden;
 }
 
-.sidebar-menu a:hover,
-.sidebar-menu a.active { /* This works with NavLink */
-  background-color: var(--primary-color);
+/* Hover Effect */
+.sidebar-menu a:hover {
+  background: linear-gradient(135deg, var(--background-secondary), var(--card-bg));
+  color: var(--primary-color);
+  padding-left: calc(var(--spacing-lg) + var(--spacing-md));
+  border-left-color: var(--accent-color);
+  box-shadow: inset -3px 0 8px rgba(30, 64, 175, 0.1);
+}
+
+/* Active/Current Page Indicator */
+.sidebar-menu a.active {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
   color: white;
+  box-shadow: 0 6px 20px rgba(30, 64, 175, 0.35);
+  border-left-color: var(--accent-color);
+  border-left-width: 4px;
+  padding-left: var(--spacing-lg);
+  position: relative;
+}
+
+.sidebar-menu a.active::before {
+  content: '✓';
+  position: absolute;
+  right: var(--spacing-lg);
+  font-size: var(--font-size-lg);
+  animation: slideInCheck 0.3s ease-out;
+}
+
+.sidebar-menu a.active::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--accent-color), transparent);
+}
+
+@keyframes slideInCheck {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Icon styling if used */
+.sidebar-icon {
+  font-size: var(--font-size-lg);
+  min-width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--transition-fast);
+}
+
+.sidebar-menu a:hover .sidebar-icon {
+  transform: translateX(4px);
+}
+
+.sidebar-menu a.active .sidebar-icon {
+  transform: scale(1.2);
+}
+
+/* Status Badge - Shows current page name */
+.page-indicator {
+  margin-top: auto;
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+  border-radius: var(--radius-md);
+  text-align: center;
+  color: white;
+  font-weight: var(--weight-bold);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Scrollbar Styling */
+.admin-sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.admin-sidebar::-webkit-scrollbar-track {
+  background: var(--border-color);
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: var(--radius-full);
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-light);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .admin-sidebar {
+    padding-top: var(--spacing-md);
+  }
+
+  .sidebar-header {
+    padding: var(--spacing-md);
+  }
+
+  .sidebar-header h2 {
+    font-size: var(--font-size-base);
+  }
+
+  .sidebar-menu {
+    padding: var(--spacing-md);
+    gap: var(--spacing-sm);
+  }
+
+  .sidebar-menu a {
+    padding: var(--spacing-md);
+    font-size: var(--font-size-xs);
+  }
+
+  .sidebar-menu a:hover {
+    padding-left: var(--spacing-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar-menu a::before {
+    display: none;
+  }
+
+  .sidebar-menu a {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
 }

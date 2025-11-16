@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
+import toast from 'react-hot-toast';
+import RichTextEditor from '../components/RichTextEditor';
+import './EditArticlePage.css';
 
 const EditArticlePage = () => {
   const { id } = useParams();
@@ -9,66 +11,231 @@ const EditArticlePage = () => {
   const [formData, setFormData] = useState({
     title: '',
     summary: '',
+    content: '',
     imageUrl: '',
     source: '',
     category: '',
+    language: 'en',
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const fetchArticle = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/articles/${id}`);
-        setFormData(res.data); // Populate the form with existing article data
+        const res = await axios.get(`/api/articles/${id}`);
+        const data = res.data;
+        setFormData({
+          title: data.title || '',
+          summary: data.summary || '',
+          content: data.content || '',
+          imageUrl: data.imageUrl || '',
+          source: data.source || '',
+          category: data.category || '',
+          language: data.language || 'en',
+        });
       } catch (err) {
-        console.error(err);
+        console.error('Error fetching article:', err);
+        toast.error('Failed to load article');
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchArticle();
   }, [id]);
 
-  const { title, summary, imageUrl, source, category } = formData;
+  const { title, summary, content, imageUrl, source, category, language } = formData;
 
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const onContentChange = (newContent) => {
+    setFormData({ ...formData, content: newContent });
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
+    if (!title.trim()) {
+      toast.error('Title is required');
+      return;
+    }
+    if (!summary.trim()) {
+      toast.error('Summary is required');
+      return;
+    }
+    if (!content.trim() || content === '<p><br></p>') {
+      toast.error('Article content is required');
+      return;
+    }
+    if (!imageUrl.trim()) {
+      toast.error('Featured image URL is required');
+      return;
+    }
+    if (!category.trim()) {
+      toast.error('Category is required');
+      return;
+    }
+
+    setIsSaving(true);
+
     try {
-      await axios.put(`http://localhost:5000/api/articles/${id}`, formData);
-      alert('Article updated successfully!');
-      navigate(`/article/${id}`); // Redirect back to the article page
+      const updatedArticle = {
+        title: title.trim(),
+        summary: summary.trim(),
+        content: content.trim(),
+        imageUrl: imageUrl.trim(),
+        source: source.trim(),
+        category: category.trim(),
+        language,
+      };
+
+      await axios.put(`/api/articles/${id}`, updatedArticle);
+      toast.success('✨ Article updated successfully!');
+      navigate(`/article/${id}`);
     } catch (err) {
-      console.error(err.response.data);
-      alert('Error updating article.');
+      console.error('Error updating article:', err);
+      const errorMsg = err.response?.data?.message || 'Error updating article';
+      toast.error(errorMsg);
+    } finally {
+      setIsSaving(false);
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="editor-panel" style={{ margin: '2rem auto', textAlign: 'center' }}>
+        <h2>Loading article...</h2>
+      </div>
+    );
+  }
+
   return (
-    <div className="editor-panel" style={{ margin: '2rem auto' }}>
-      <h2>Edit Article</h2>
+    <div className="editor-panel" style={{ margin: '2rem auto', maxWidth: '900px' }}>
+      <h2>✎ Edit Article</h2>
       <form onSubmit={onSubmit}>
+        {/* Title */}
         <div className="form-group">
-          <label>Title</label>
-          <input type="text" name="title" value={title} onChange={onChange} required />
+          <label htmlFor="title">Article Title *</label>
+          <input 
+            id="title"
+            type="text" 
+            name="title" 
+            value={title} 
+            onChange={onChange} 
+            placeholder="Enter article title..."
+            required 
+          />
         </div>
+
+        {/* Featured Image URL */}
         <div className="form-group">
-          <label>Summary (ELI10)</label>
-          <textarea rows="5" name="summary" value={summary} onChange={onChange} required></textarea>
+          <label htmlFor="imageUrl">Featured Image URL *</label>
+          <input 
+            id="imageUrl"
+            type="text" 
+            name="imageUrl" 
+            value={imageUrl} 
+            onChange={onChange}
+            placeholder="https://example.com/image.jpg"
+            required 
+          />
+          {imageUrl && (
+            <div className="image-preview">
+              <img src={imageUrl} alt="Preview" onError={(e) => e.target.style.display = 'none'} />
+            </div>
+          )}
         </div>
+
+        {/* Short Summary */}
         <div className="form-group">
-          <label>Image URL</label>
-          <input type="text" name="imageUrl" value={imageUrl} onChange={onChange} required />
+          <label htmlFor="summary">Short Summary (for Card) *</label>
+          <textarea 
+            id="summary"
+            rows="3" 
+            name="summary" 
+            value={summary} 
+            onChange={onChange}
+            placeholder="Write a brief summary for article cards..."
+            required
+          ></textarea>
         </div>
+
+        {/* Language */}
         <div className="form-group">
-          <label>Source</label>
-          <input type="text" name="source" value={source} onChange={onChange} />
+          <label>Language *</label>
+          <div className="language-options">
+            <label className={language === 'en' ? 'selected' : ''}>
+              <input
+                type="radio"
+                name="language"
+                value="en"
+                checked={language === 'en'}
+                onChange={onChange}
+              />
+              English
+            </label>
+            <label className={language === 'kn' ? 'selected' : ''}>
+              <input
+                type="radio"
+                name="language"
+                value="kn"
+                checked={language === 'kn'}
+                onChange={onChange}
+              />
+              ಕನ್ನಡ
+            </label>
+          </div>
         </div>
+
+        {/* Rich Content Editor */}
         <div className="form-group">
-          <label>Category / Tag</label>
-          <input type="text" name="category" value={category} onChange={onChange} required />
+          <label htmlFor="content">Full Article Content *</label>
+          <p className="editor-hint">💡 Use the toolbar to format text, insert images, and embed videos</p>
+          <RichTextEditor 
+            value={content}
+            onChange={onContentChange}
+            placeholder="Write your article content... Include text, images, and YouTube videos!"
+          />
         </div>
-        <button type="submit" className="publish-button">Update Article</button>
+
+        {/* Source */}
+        <div className="form-group">
+          <label htmlFor="source">Source</label>
+          <input 
+            id="source"
+            type="text" 
+            name="source" 
+            value={source} 
+            onChange={onChange}
+            placeholder="e.g., BBC News, Reuters"
+          />
+        </div>
+
+        {/* Category */}
+        <div className="form-group">
+          <label htmlFor="category">Category / Tag *</label>
+          <input 
+            id="category"
+            type="text" 
+            name="category" 
+            value={category} 
+            onChange={onChange} 
+            placeholder="e.g., ExamAlert, BreakingNews"
+            required 
+          />
+        </div>
+
+        {/* Submit Button */}
+        <button 
+          type="submit" 
+          className="publish-button"
+          disabled={isSaving}
+        >
+          {isSaving ? '⏳ Updating...' : '💾 Update Article'}
+        </button>
       </form>
     </div>
   );

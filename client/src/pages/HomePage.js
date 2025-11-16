@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import ArticleCard from '../components/ArticleCard';
 import FeaturedArticle from '../components/FeaturedArticle';
 import TrendingWidget from '../components/TrendingWidget';
 import DeadlinesWidget from '../components/DeadlinesWidget';
+import DeadlineAlert from '../components/DeadlineAlert';
+import EmptyState from '../components/EmptyState'; // 1. Import the new component
+import { useLanguage } from '../context/LanguageContext';
 import './HomePage.css';
 
 // Define your categories
@@ -13,49 +16,49 @@ const categories = ['ExamAlert', 'Scholarships', 'Guidelines', 'Internships', 'R
 const HomePage = () => {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState(null); // State for selected category
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const { language } = useLanguage();
 
-  // Updated fetchArticles function to accept a category
-  const fetchArticles = async (category = null) => {
+  const fetchArticles = useCallback(async (category = null) => {
     setLoading(true);
     try {
-      let url = 'http://localhost:5000/api/articles';
+      const params = new URLSearchParams({ language });
       if (category) {
-        url += `?category=${encodeURIComponent(category)}`; // Add category to URL if selected
+        params.append('category', category);
       }
-      const res = await axios.get(url);
+      const res = await axios.get(`/api/articles?${params.toString()}`);
       setArticles(res.data);
     } catch (err) {
       console.error('Error fetching articles:', err);
-      setArticles([]); // Clear articles on error
+      setArticles([]);
     }
     setLoading(false);
-  };
+  }, [language]);
 
   useEffect(() => {
-    fetchArticles(selectedCategory); // Fetch based on selected category
-  }, [selectedCategory]); // Re-run effect when selectedCategory changes
+    fetchArticles(selectedCategory);
+  }, [fetchArticles, selectedCategory]);
 
   const handleCategoryClick = (category) => {
     if (selectedCategory === category) {
-      setSelectedCategory(null); // Click again to show all
+      setSelectedCategory(null);
     } else {
       setSelectedCategory(category);
     }
   };
 
-  const featuredArticle = articles.length > 0 && !selectedCategory ? articles[0] : null; // Show featured only when showing all
-  const displayArticles = selectedCategory ? articles : articles.slice(1); // Show all if filtered, else skip first
+  const featuredArticle = articles.length > 0 && !selectedCategory ? articles[0] : null;
+  const displayArticles = selectedCategory ? articles : articles.slice(1);
 
   return (
-    <div className="home-layout">
-      <div className="main-content">
-        {/* Only show featured article when no category is selected */}
-        {!selectedCategory && <FeaturedArticle article={featuredArticle} />}
+    <>
+      <DeadlineAlert />
+      <div className="home-layout">
+        <div className="main-content">
+          {!selectedCategory && <FeaturedArticle article={featuredArticle} />}
 
         <h2>{selectedCategory ? `Latest News in ${selectedCategory}` : 'Latest News'}</h2>
 
-        {/* Category Buttons */}
         <div className="category-buttons">
           <button
             onClick={() => handleCategoryClick(null)}
@@ -69,7 +72,7 @@ const HomePage = () => {
               onClick={() => handleCategoryClick(cat)}
               className={selectedCategory === cat ? 'active' : ''}
             >
-              {cat} {/* Display without '#' */}
+              {cat.replace('#', '')}
             </button>
           ))}
         </div>
@@ -85,7 +88,8 @@ const HomePage = () => {
                 </Link>
               ))
             ) : (
-              <p>No articles found{selectedCategory ? ` for ${selectedCategory}` : ''}.</p>
+              // 2. Use the new EmptyState component here
+              <EmptyState message={selectedCategory ? `No ${language === 'kn' ? 'Kannada' : 'English'} articles found for ${selectedCategory}` : `No ${language === 'kn' ? 'Kannada' : 'English'} articles published yet.`} />
             )}
           </div>
         )}
@@ -94,7 +98,8 @@ const HomePage = () => {
         <TrendingWidget />
         <DeadlinesWidget />
       </aside>
-    </div>
+      </div>
+    </>
   );
 };
 
