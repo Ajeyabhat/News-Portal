@@ -22,14 +22,15 @@ const TrendingWidget = () => {
 
   return (
     <div className="trending-widget">
-      <h3>🔥 Trending Articles</h3>
-      <ul>
-        {trending.map((article) => (
-          <li key={article._id}>
-            <Link to={`/article/${article._id}`}>{article.title}</Link>
+      <h3 className="trending-title">🔥 Trending Articles</h3>
+      <ol className="trending-list">
+        {trending.slice(0, 10).map((article, index) => (
+          <li key={article._id} className="trending-item">
+            <span className="trending-rank">{index + 1}</span>
+            <Link to={`/article/${article._id}`} className="trending-link">{article.title}</Link>
           </li>
         ))}
-      </ul>
+      </ol>
     </div>
   );
 };

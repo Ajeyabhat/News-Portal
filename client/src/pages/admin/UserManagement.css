@@ -158,16 +158,18 @@
   font-weight: var(--weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  background: var(--accent-muted);
+  color: var(--accent-hover);
 }
 
 .role-admin {
   background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
-  color: white;
+  color: var(--accent-text);
 }
 
 .role-reader {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: var(--accent-text);
 }
 
 .user-actions {

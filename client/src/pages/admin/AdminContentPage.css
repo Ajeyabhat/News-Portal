@@ -97,6 +97,36 @@ body.dark {
   max-height: 70vh; /* Set a max height */
 }
 
+.inbox-tabs {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: var(--spacing-sm);
+}
+
+.inbox-tab {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-weight: var(--weight-semibold);
+  font-size: var(--font-size-sm);
+  transition: all var(--transition-fast);
+  margin-bottom: -var(--spacing-sm); /* Align with parent border */
+}
+
+.inbox-tab:hover {
+  color: var(--text-color);
+}
+
+.inbox-tab.active {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+}
+
 .inbox-list::-webkit-scrollbar { width: 6px; }
 .inbox-list::-webkit-scrollbar-track { background: var(--border-color); border-radius: var(--radius-full); }
 .inbox-list::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: var(--radius-full); }
@@ -132,6 +162,26 @@ body.dark {
   font-size: var(--font-size-sm);
   line-height: 1.4;
   word-break: break-word;
+}
+
+.inbox-item-title {
+  font-weight: var(--weight-extrabold) !important;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.inbox-item-source {
+  font-size: var(--font-size-xs) !important;
+  color: var(--subtle-text) !important;
+  font-weight: var(--weight-regular) !important;
+}
+
+.inbox-item-preview {
+  font-size: var(--font-size-xs) !important;
+  color: var(--subtle-text) !important;
+  font-weight: var(--weight-regular) !important;
+  font-style: italic;
 }
 
 .view-source-link {
@@ -175,8 +225,11 @@ body.dark {
   flex-direction: column;
   gap: var(--spacing-md);
   overflow-y: auto;
+  overflow-x: hidden;
   padding-right: var(--spacing-md);
   max-height: 70vh; /* Set a max height */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Scrollbar for editor */
@@ -241,6 +294,10 @@ body.dark {
   font-size: var(--font-size-sm);
   transition: all var(--transition-fast);
   font-weight: var(--weight-regular);
+  width: 100%;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .form-group input::placeholder,

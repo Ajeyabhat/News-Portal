@@ -5,32 +5,49 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  institutionName: {
+    type: String, // For institutions, stores their official name
+  },
   email: {
     type: String,
     required: true,
     unique: true
   },
-  // We no longer store the password, Firebase handles it.
-  // password: { ... } 
-
+  password: {
+    type: String,
+    required: true,
+    minlength: 6
+  },
   role: {
     type: String,
-    enum: ['Reader', 'Admin'], 
+    enum: ['Reader', 'Admin', 'Institution'], 
     default: 'Reader' 
   },
   bookmarks: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Article'
   }],
-  
-  // We no longer need OTP fields, but we'll keep 'isVerified'
-  // and set the default to 'true' as Firebase will handle verification.
-  isVerified: {
+  emailVerified: {
     type: Boolean,
-    default: true
+    default: false
+  },
+  verificationToken: {
+    type: String
+  },
+  resetPasswordToken: {
+    type: String
+  },
+  resetPasswordExpires: {
+    type: Date
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
   }
-  // otp: { ... }
-  // otpExpires: { ... }
 });
+
+// Performance indexes
+// Email already has unique: true, so no need to add explicit index
+UserSchema.index({ role: 1 }); // Role-based queries
 
 module.exports = mongoose.model('User', UserSchema);

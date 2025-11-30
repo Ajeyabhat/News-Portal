@@ -9,9 +9,14 @@ const VerifyPage = () => {
       <p>A verification link has been sent to your email address.</p>
       <p>Please click the link in that email to verify your account and log in.</p>
       <br />
-      <Link to="/login" className="publish-button" style={{ textDecoration: 'none' }}>
-        Go to Login Page
-      </Link>
+      <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <Link to="/login" className="publish-button" style={{ textDecoration: 'none' }}>
+          Go to Login Page
+        </Link>
+        <Link to="/" className="publish-button" style={{ textDecoration: 'none', backgroundColor: '#666' }}>
+          Back to Home
+        </Link>
+      </div>
     </div>
   );
 };

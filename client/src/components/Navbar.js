@@ -20,10 +20,13 @@ const Navbar = () => {
       {dropdownOpen && (
         <ul className="dropdown-menu">
           {user && user.role === 'Admin' && (
-            <li><Link to="/admin" onClick={() => setDropdownOpen(false)}>Admin Panel</Link></li>
+            <li><Link to="/admin" onClick={() => { setDropdownOpen(false); setMobileMenuOpen(false); }}>Admin Panel</Link></li>
           )}
-          <li><Link to="/bookmarks" onClick={() => setDropdownOpen(false)}>My Bookmarks</Link></li>
-          <li><button onClick={() => { logout(); setDropdownOpen(false); }}>Logout</button></li>
+          {user && user.role === 'Institution' && (
+            <li><Link to="/institution" onClick={() => { setDropdownOpen(false); setMobileMenuOpen(false); }}>Submit Article</Link></li>
+          )}
+          <li><Link to="/bookmarks" onClick={() => { setDropdownOpen(false); setMobileMenuOpen(false); }}>My Bookmarks</Link></li>
+          <li><button onClick={() => { logout(); setDropdownOpen(false); setMobileMenuOpen(false); }}>Logout</button></li>
         </ul>
       )}
     </div>
@@ -33,6 +36,7 @@ const Navbar = () => {
     <ul className="nav-links">
       <li><Link to="/">Home</Link></li>
       <li><Link to="/register">Register</Link></li>
+      <li><Link to="/register-institution">🏫 Schools & Colleges</Link></li>
       <li><Link to="/login">Login</Link></li>
     </ul>
   );

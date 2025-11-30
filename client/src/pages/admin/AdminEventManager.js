@@ -10,8 +10,7 @@ const EventManager = () => {
 
   const fetchEvents = async () => {
     try {
-      // Ensure this URL is correct
-      const res = await axios.get('http://localhost:5000/api/events');
+      const res = await axios.get('/api/events');
       setEvents(res.data);
     } catch (err) {
       console.error('Error fetching events for manager:', err);

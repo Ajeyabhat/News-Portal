@@ -1,21 +1,12 @@
-const admin = require('firebase-admin');
-const User = require('../models/User'); // We still need our User model
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
-// Initialize Firebase Admin (only do this once)
-try {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(), // Tries to find service account key
-    projectId: process.env.FIREBASE_PROJECT_ID,
-  });
-  console.log('Firebase Admin initialized.');
-} catch (error) {
-  if (error.code !== 'app/duplicate-app') {
-    console.error('Firebase Admin initialization error:', error);
-  }
-}
-
+/**
+ * JWT Authentication Middleware
+ * Verifies JWT token and attaches user to request
+ */
 const auth = async (req, res, next) => {
-  // Get the token from the Authorization header
+  // Get token from Authorization header
   const authHeader = req.header('Authorization');
   if (!authHeader) {
     return res.status(401).json({ msg: 'No token, authorization denied' });
@@ -27,26 +18,35 @@ const auth = async (req, res, next) => {
   }
 
   try {
-    // Verify the token using Firebase Admin
-    const decodedToken = await admin.auth().verifyIdToken(token);
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    // Find the user in our *own* MongoDB database
-    // We use the email from the Firebase token to find our user
-    const user = await User.findOne({ email: decodedToken.email });
+    // Find user in MongoDB
+    const user = await User.findById(decoded.userId).select('-password');
 
     if (!user) {
-      return res.status(401).json({ msg: 'User not found in our database.' });
+      return res.status(401).json({ msg: 'User not found' });
     }
 
-    // Attach our MongoDB user (not the Firebase user) to the request
+    // Check if email is verified - REQUIRED before login
+    if (!user.emailVerified) {
+      return res.status(403).json({ msg: 'Please verify your email first. Check your inbox for verification link.' });
+    }
+
+    // Attach user to request
     req.user = {
-      id: user._id, // Our MongoDB user ID
+      id: user._id,
       role: user.role,
-      email: user.email
+      email: user.email,
+      username: user.username,
+      emailVerified: user.emailVerified
     };
     
     next();
   } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ msg: 'Token expired, please login again' });
+    }
     res.status(401).json({ msg: 'Token is not valid' });
   }
 };

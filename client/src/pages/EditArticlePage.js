@@ -59,23 +59,43 @@ const EditArticlePage = () => {
     
     // Validation
     if (!title.trim()) {
-      toast.error('Title is required');
+      toast.error('❌ Article title is required');
       return;
     }
+
+    if (title.trim().length < 5) {
+      toast.error('❌ Title must be at least 5 characters');
+      return;
+    }
+
     if (!summary.trim()) {
-      toast.error('Summary is required');
+      toast.error('❌ Article summary is required');
       return;
     }
+
+    if (summary.trim().length < 20) {
+      toast.error('❌ Summary should be at least 20 characters');
+      return;
+    }
+
     if (!content.trim() || content === '<p><br></p>') {
-      toast.error('Article content is required');
+      toast.error('❌ Article content cannot be empty');
       return;
     }
+
+    const contentWordCount = content.replace(/<[^>]*>/g, '').split(/\s+/).filter(word => word).length;
+    if (contentWordCount < 50) {
+      toast.error(`❌ Article content too short (${contentWordCount} words, minimum 50 needed)`);
+      return;
+    }
+
     if (!imageUrl.trim()) {
-      toast.error('Featured image URL is required');
+      toast.error('❌ Featured image URL is required');
       return;
     }
+
     if (!category.trim()) {
-      toast.error('Category is required');
+      toast.error('❌ Article category is required');
       return;
     }
 
@@ -97,8 +117,22 @@ const EditArticlePage = () => {
       navigate(`/article/${id}`);
     } catch (err) {
       console.error('Error updating article:', err);
+      const errorCode = err.response?.data?.code;
       const errorMsg = err.response?.data?.message || 'Error updating article';
-      toast.error(errorMsg);
+
+      if (err.response?.status === 404) {
+        toast.error('❌ Article not found. It may have been deleted.');
+      } else if (err.response?.status === 403) {
+        toast.error('❌ Permission denied. Only admins can edit articles.');
+      } else if (errorCode === 'TITLE_REQUIRED') {
+        toast.error('❌ ' + errorMsg);
+      } else if (errorCode === 'CONTENT_REQUIRED') {
+        toast.error('❌ ' + errorMsg);
+      } else if (errorCode === 'SERVER_ERROR') {
+        toast.error('❌ ' + errorMsg);
+      } else {
+        toast.error('❌ Failed to update article: ' + errorMsg);
+      }
     } finally {
       setIsSaving(false);
     }

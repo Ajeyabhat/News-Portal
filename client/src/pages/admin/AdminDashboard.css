@@ -111,8 +111,8 @@
   justify-content: center;
   gap: var(--spacing-md);
   padding: var(--spacing-xl);
-  background: linear-gradient(135deg, var(--hover-bg-color), var(--border-light));
-  border: 2px solid var(--border-color);
+  background: linear-gradient(135deg, var(--card-bg), var(--accent-muted));
+  border: 2px solid var(--accent-muted);
   border-radius: var(--radius-lg);
   text-decoration: none;
   color: var(--text-color);
@@ -126,11 +126,11 @@
 }
 
 .action-button:hover {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-  color: white;
-  border-color: var(--primary-light);
+  background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
+  color: var(--accent-text);
+  border-color: var(--accent-hover);
   transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(30, 64, 175, 0.2);
+  box-shadow: 0 12px 24px rgba(var(--accent-color-rgb), 0.35);
 }
 
 .action-icon {
@@ -197,7 +197,7 @@
 }
 
 .activity-badge {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
   color: white;
   padding: var(--spacing-xs) var(--spacing-md);
   border-radius: var(--radius-full);

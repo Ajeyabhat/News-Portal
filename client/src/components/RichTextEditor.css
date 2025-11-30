@@ -46,6 +46,8 @@
   border: none;
   min-height: 400px;
   color: var(--text-secondary);
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .rich-editor-container .ql-editor {
@@ -53,6 +55,10 @@
   background: var(--card-bg);
   color: var(--text-secondary);
   line-height: 1.8;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
 }
 
 .rich-editor-container .ql-editor.ql-blank::before {

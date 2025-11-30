@@ -5,8 +5,8 @@ import ArticleCard from '../components/ArticleCard';
 import FeaturedArticle from '../components/FeaturedArticle';
 import TrendingWidget from '../components/TrendingWidget';
 import DeadlinesWidget from '../components/DeadlinesWidget';
-import DeadlineAlert from '../components/DeadlineAlert';
-import EmptyState from '../components/EmptyState'; // 1. Import the new component
+import EmptyState from '../components/EmptyState';
+import Skeleton from '../components/Skeleton';
 import { useLanguage } from '../context/LanguageContext';
 import './HomePage.css';
 
@@ -16,26 +16,37 @@ const categories = ['ExamAlert', 'Scholarships', 'Guidelines', 'Internships', 'R
 const HomePage = () => {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [pagination, setPagination] = useState({ page: 1, limit: 30, total: 0, pages: 0 });
   const { language } = useLanguage();
 
-  const fetchArticles = useCallback(async (category = null) => {
+  const fetchArticles = useCallback(async (category = null, page = 1) => {
     setLoading(true);
+    setError(null);
     try {
-      const params = new URLSearchParams({ language });
+      const params = new URLSearchParams({ language, page, limit: 30 });
       if (category) {
         params.append('category', category);
       }
-      const res = await axios.get(`/api/articles?${params.toString()}`);
-      setArticles(res.data);
+      const url = `/api/articles?${params.toString()}`;
+      console.log('🔍 Fetching from:', url);
+      const res = await axios.get(url);
+      console.log('✅ Articles fetched:', res.data);
+      setArticles(res.data.articles || res.data); // Handle both old and new response format
+      if (res.data.pagination) {
+        setPagination(res.data.pagination);
+      }
     } catch (err) {
-      console.error('Error fetching articles:', err);
+      console.error('❌ Error fetching articles:', err);
+      setError('Failed to load articles. Please check your connection and try again.');
       setArticles([]);
     }
     setLoading(false);
   }, [language]);
 
   useEffect(() => {
+    console.log('📌 HomePage useEffect triggered - selectedCategory:', selectedCategory);
     fetchArticles(selectedCategory);
   }, [fetchArticles, selectedCategory]);
 
@@ -52,53 +63,94 @@ const HomePage = () => {
 
   return (
     <>
-      <DeadlineAlert />
+      <section className="page-section">
       <div className="home-layout">
         <div className="main-content">
           {!selectedCategory && <FeaturedArticle article={featuredArticle} />}
 
-        <h2>{selectedCategory ? `Latest News in ${selectedCategory}` : 'Latest News'}</h2>
-
-        <div className="category-buttons">
-          <button
-            onClick={() => handleCategoryClick(null)}
-            className={!selectedCategory ? 'active' : ''}
-          >
-            All News
-          </button>
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => handleCategoryClick(cat)}
-              className={selectedCategory === cat ? 'active' : ''}
-            >
-              {cat.replace('#', '')}
-            </button>
-          ))}
-        </div>
-
-        {loading ? (
-          <h2>Loading articles...</h2>
-        ) : (
-          <div className="article-grid">
-            {displayArticles.length > 0 ? (
-              displayArticles.map((article) => (
-                <Link to={`/article/${article._id}`} key={article._id} className="card-link">
-                  <ArticleCard article={article} />
-                </Link>
-              ))
-            ) : (
-              // 2. Use the new EmptyState component here
-              <EmptyState message={selectedCategory ? `No ${language === 'kn' ? 'Kannada' : 'English'} articles found for ${selectedCategory}` : `No ${language === 'kn' ? 'Kannada' : 'English'} articles published yet.`} />
+          <div className="section-header">
+            <h2 className="section-heading">{selectedCategory ? `${selectedCategory}` : 'Latest News'}</h2>
+            {selectedCategory && (
+              <button 
+                className="btn btn-sm"
+                onClick={() => setSelectedCategory(null)}
+              >
+                ✕ Clear Filter
+              </button>
             )}
           </div>
-        )}
-      </div>
-      <aside className="sidebar">
-        <TrendingWidget />
-        <DeadlinesWidget />
-      </aside>
-      </div>
+
+          <div className="category-filters">
+            <button
+              onClick={() => setSelectedCategory(null)}
+              className={`btn btn-filter ${!selectedCategory ? 'active' : ''}`}
+            >
+              All
+            </button>
+            {['ExamAlert', 'Scholarships', 'Guidelines', 'Internships', 'Results'].map(cat => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`btn btn-filter ${selectedCategory === cat ? 'active' : ''}`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          {loading && !articles.length ? (
+            <>
+              {!selectedCategory && <Skeleton type="featured" count={1} />}
+              <div className="article-grid">
+                <Skeleton type="card" count={6} />
+              </div>
+            </>
+          ) : error && !articles.length ? (
+            <div className="error-state">
+              <p className="error-message">{error}</p>
+              <button 
+                className="btn btn-primary retry-button" 
+                onClick={() => fetchArticles(selectedCategory, 1)}
+              >
+                Try Again
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="article-grid">
+                {displayArticles.length > 0 ? (
+                  displayArticles.map((article) => (
+                    <Link to={`/article/${article._id}`} key={article._id} className="card-link">
+                      <ArticleCard article={article} />
+                    </Link>
+                  ))
+                ) : (
+                  <EmptyState message={selectedCategory ? `No articles found for ${selectedCategory}` : `No articles published yet.`} />
+                )}
+              </div>
+              
+              {/* Load More Button */}
+              {pagination.page < pagination.pages && (
+                <div className="load-more-container">
+                  <button 
+                    className="btn btn-primary btn-lg"
+                    onClick={() => fetchArticles(selectedCategory, pagination.page + 1)}
+                    disabled={loading}
+                    aria-label="Load more articles"
+                  >
+                    {loading ? 'Loading...' : 'Load More Articles'}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+        <aside className="sidebar">
+          <TrendingWidget />
+          <DeadlinesWidget />
+        </aside>
+        </div>
+      </section>
     </>
   );
 };

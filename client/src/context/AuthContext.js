@@ -1,78 +1,128 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
-import { 
-  
-  onAuthStateChanged, 
-  signInWithEmailAndPassword, 
-  signOut 
-} from "firebase/auth";
-import { auth as firebaseAuth } from '../firebase';
+import { useLanguage } from './LanguageContext';
 
 export const AuthContext = createContext();
 
-// Helper to set token for all axios requests
-const setAuthHeader = (token) => {
+// Set baseURL for all axios requests
+axios.defaults.baseURL = 'http://localhost:5000';
+
+// Helper to manage JWT token in localStorage
+const getToken = () => localStorage.getItem('token');
+const setToken = (token) => {
   if (token) {
+    localStorage.setItem('token', token);
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   } else {
+    localStorage.removeItem('token');
     delete axios.defaults.headers.common['Authorization'];
   }
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // This is our MongoDB user
+  const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { setLanguage } = useLanguage();
 
-  // This function fetches our user data (with roles/bookmarks) from our own server
+  // Load user data from server
   const loadUser = async () => {
-    const token = await firebaseAuth.currentUser?.getIdToken();
+    const token = getToken();
     if (!token) {
       setLoading(false);
       return;
     }
-    setAuthHeader(token);
+
+    setToken(token); // Set axios header
+
     try {
-      const res = await axios.get('http://localhost:5000/api/auth');
+      const res = await axios.get('/api/users/auth');
       setUser(res.data);
       setIsAuthenticated(true);
     } catch (err) {
-      console.error("Error loading user data from MongoDB:", err);
-      await signOut(firebaseAuth); // Force logout if Mongo user not found
+      console.error('Error loading user:', err);
+      // Token invalid or expired
+      setToken(null);
+      setUser(null);
+      setIsAuthenticated(false);
     }
     setLoading(false);
   };
 
+  // Load user on mount
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(firebaseAuth, (firebaseUser) => {
-      if (firebaseUser) {
-        // User is signed in to Firebase. Load their data from our DB.
-        loadUser();
-      } else {
-        // User is signed out.
-        setAuthHeader(null);
-        setUser(null);
-        setIsAuthenticated(false);
-        setLoading(false);
-      }
-    });
-    return () => unsubscribe();
+    loadUser();
   }, []);
 
+  // Login function
   const login = async (email, password) => {
-    await signInWithEmailAndPassword(firebaseAuth, email, password);
-    // onAuthStateChanged will fire and call loadUser()
+    setLanguage('en');
+    try {
+      const res = await axios.post('/api/users/login', { email, password });
+      
+      // Save token
+      setToken(res.data.token);
+      
+      // Set user
+      setUser(res.data.user);
+      setIsAuthenticated(true);
+      
+      return res.data;
+    } catch (err) {
+      throw err;
+    }
   };
 
+  // Register function
+  const register = async (userData) => {
+    try {
+      const res = await axios.post('/api/users/register', userData);
+      
+      // Save token (user can use app even before email verification)
+      setToken(res.data.token);
+      
+      // Set user
+      setUser(res.data.user);
+      setIsAuthenticated(true);
+      
+      return res.data;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  // Logout function
   const logout = async () => {
-    await signOut(firebaseAuth);
-    // onAuthStateChanged will fire and clear state
+    setLanguage('en');
+    setToken(null);
+    setUser(null);
+    setIsAuthenticated(false);
   };
 
   return (
-    // We now export loadUser so other components can call it
-    <AuthContext.Provider value={{ token: null, user, isAuthenticated, loading, login, logout, loadUser }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated,
+        loading,
+        login,
+        register,
+        logout,
+        loadUser
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
+
+// Custom hook to use auth context
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+export default AuthContext;

@@ -1,20 +1,21 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
-import { auth as firebaseAuth } from '../firebase'; // Import from our firebase.js
 import './AuthForms.css';
 
-function Register() {
+const Register = () => {
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
+    confirmPassword: ''
   });
+  const [loading, setLoading] = useState(false);
 
-  const { username, email, password } = formData;
+  const { username, email, password, confirmPassword } = formData;
 
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -22,71 +23,130 @@ function Register() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
+
+    // Validation
+    if (!username || !email || !password || !confirmPassword) {
+      toast.error('❌ Please fill in all fields');
+      return;
+    }
+
+    if (password.length < 6) {
+      toast.error('❌ Password must be at least 6 characters');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast.error('❌ Passwords do not match');
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      // --- Step 1: Create the user in Firebase Authentication ---
-      const userCredential = await createUserWithEmailAndPassword(firebaseAuth, email, password);
-      console.log('Firebase user created.');
+      // Register without auto-login
+      const response = await axios.post('http://localhost:5000/api/users/register', {
+        username,
+        email,
+        password,
+        role: 'Reader'
+      });
 
-      // --- Step 2: Send the verification email (Firebase handles this!) ---
-      await sendEmailVerification(userCredential.user);
-      console.log('Firebase verification email sent.');
-      toast.success('Verification email sent! Please check your inbox.');
-
-      // --- Step 3: Create the user in our *own* MongoDB database ---
-      // This is the step that was likely failing.
-      const newUser = { username, email }; // We don't send the password
+      toast.success('✅ Registration successful!');
+      toast.success('📧 Please check your email to verify your account');
       
-      // We are sending to our Node.js back-end
-      await axios.post('http://localhost:5000/api/register', newUser);
-      console.log('MongoDB user created.');
-
-      // --- Step 4: Redirect to the new Verify Page ---
-      navigate('/verify');
-
+      // Redirect to login page after 2 seconds
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (err) {
-      console.error('Registration Failed:', err.response ? err.response.data : err.message);
-      toast.error('Registration Failed: ' + (err.response?.data?.message || err.message));
+      console.error('Registration error:', err);
+      const errorMsg = err.response?.data?.msg || 'Registration failed';
+      toast.error('❌ ' + errorMsg);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="form-container">
-      <h2>Register</h2>
-      <form onSubmit={onSubmit}>
-        <div>
-          <input
-            type="text"
-            placeholder="Username"
-            name="username"
-            value={username}
-            onChange={onChange}
-            required
-          />
+    <div className="auth-container">
+      <div className="auth-card">
+        <h2>Create Account</h2>
+        <p className="auth-subtitle">Join News Portal to stay updated</p>
+
+        <form onSubmit={onSubmit} className="auth-form">
+          <div className="form-group">
+            <label htmlFor="username">Username *</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              value={username}
+              onChange={onChange}
+              placeholder="Enter your username"
+              disabled={loading}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="email">Email Address *</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={email}
+              onChange={onChange}
+              placeholder="Enter your email"
+              disabled={loading}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Password *</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={password}
+              onChange={onChange}
+              placeholder="At least 6 characters"
+              disabled={loading}
+              minLength="6"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="confirmPassword">Confirm Password *</label>
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              value={confirmPassword}
+              onChange={onChange}
+              placeholder="Re-enter your password"
+              disabled={loading}
+              required
+            />
+          </div>
+
+          <button 
+            type="submit" 
+            className="auth-button"
+            disabled={loading}
+          >
+            {loading ? 'Creating Account...' : 'Register'}
+          </button>
+        </form>
+
+        <div className="auth-footer">
+          <p>Already have an account? <Link to="/login">Login here</Link></p>
+          <p>Are you an institution? <Link to="/register-institution">Register as Institution</Link></p>
         </div>
-        <div>
-          <input
-            type="email"
-            placeholder="Email Address"
-            name="email"
-            value={email}
-            onChange={onChange}
-            required
-          />
-        </div>
-        <div>
-          <input
-            type="password"
-            placeholder="Password"
-            name="password"
-            value={password}
-            onChange={onChange}
-            required
-          />
-        </div>
-        <input type="submit" value="Register" />
-      </form>
+      </div>
     </div>
   );
-}
+};
 
 export default Register;

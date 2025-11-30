@@ -1,20 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
-import { ThemeProvider } from '../context/ThemeContext';
-import { LanguageProvider } from '../context/LanguageContext';
 
 const Layout = ({ children }) => {
+  const location = useLocation();
+
+  // Scroll to the top whenever the route changes so users don't land at the footer
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [location.pathname]);
+
   return (
-    <LanguageProvider>
-      <ThemeProvider>
-        <div className="site-container">
-          <Navbar />
-          <main className="container">{children}</main>
-          <Footer />
-        </div>
-      </ThemeProvider>
-    </LanguageProvider>
+    <div className="site-container">
+      <Navbar />
+      <main className="container">{children}</main>
+      <Footer />
+    </div>
   );
 };
 
