@@ -12,9 +12,9 @@ const Layout = ({ children }) => {
   }, [location.pathname]);
 
   return (
-    <div className="site-container">
+    <div className="flex flex-col min-h-screen bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 transition-colors duration-200">
       <Navbar />
-      <main className="container">{children}</main>
+      <main className="flex-1">{children}</main>
       <Footer />
     </div>
   );

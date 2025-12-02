@@ -23,42 +23,14 @@ import EventManager from './pages/admin/AdminEventManager';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import PrivacyPage from './pages/PrivacyPage';
-import './App.css';
+import TermsPage from './pages/TermsPage';
+
 
 function App() {
   return (
-    <Layout> 
+    <>
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/register-institution" element={<RegisterInstitution />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route path="/verify" element={<VerifyPage />} />
-        <Route path="/article/:id" element={<ArticlePage />} />
-        <Route path="/search" element={<SearchResultsPage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/privacy" element={<PrivacyPage />} />
-        
-        <Route 
-          path="/bookmarks" 
-          element={<ProtectedRoute><BookmarksPage /></ProtectedRoute>} 
-        />
-
-        {/* Institution Dashboard */}
-        <Route 
-          path="/institution" 
-          element={
-            <ProtectedRoute institutionOnly={true}>
-              <InstitutionDashboard />
-            </ProtectedRoute>
-          }
-        />
-        
-        {/* Admin Routes with AdminLayout */}
+        {/* Admin Routes - No Main Layout */}
         <Route 
           path="/admin" 
           element={
@@ -74,15 +46,52 @@ function App() {
           <Route path="events" element={<EventManager />} />
         </Route>
 
-        {/* New: Add the Edit Article Route */}
-        <Route 
-          path="/edit-article/:id" 
-          element={
-            <ProtectedRoute adminOnly={true}>
-              <EditArticlePage />
-            </ProtectedRoute>
-          } 
-        />
+        {/* All Other Routes - With Main Layout */}
+        <Route path="*" element={
+          <Layout>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/register-institution" element={<RegisterInstitution />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/verify" element={<VerifyPage />} />
+              <Route path="/article/:id" element={<ArticlePage />} />
+              <Route path="/search" element={<SearchResultsPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              
+              <Route 
+                path="/bookmarks" 
+                element={<ProtectedRoute><BookmarksPage /></ProtectedRoute>} 
+              />
+
+              {/* Institution Dashboard */}
+              <Route 
+                path="/institution" 
+                element={
+                  <ProtectedRoute institutionOnly={true}>
+                    <InstitutionDashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Edit Article Route */}
+              <Route 
+                path="/edit-article/:id" 
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <EditArticlePage />
+                  </ProtectedRoute>
+                } 
+              />
+            </Routes>
+          </Layout>
+        } />
       </Routes>
       <Toaster
         position="top-right"
@@ -102,7 +111,7 @@ function App() {
           },
         }}
       />
-    </Layout>
+    </>
   );
 }
 

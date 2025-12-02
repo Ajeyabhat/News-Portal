@@ -1,133 +1,169 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import './AuthForms.css';
+import { Loader2, CheckCircle2, XCircle, LogIn, ArrowLeft } from 'lucide-react';
 
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState('verifying'); // 'verifying', 'success', 'error'
   const [message, setMessage] = useState('');
+  const hasRunRef = useRef(false);
+  const token = useMemo(() => searchParams.get('token'), [searchParams]);
 
-  const hasRunRef = useRef(false); // prevent double verification in StrictMode
+  const verifyEmail = useCallback(async () => {
+    setStatus('verifying');
+    setMessage('');
+
+    if (!token) {
+      setStatus('error');
+      setMessage('Invalid verification link. No token found.');
+      return;
+    }
+
+    try {
+      const url = `http://localhost:5000/api/users/verify-email/${token}`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setStatus('error');
+        setMessage(data.msg || 'Verification failed. Please request a new link.');
+        return;
+      }
+
+      setStatus('success');
+      setMessage(data.msg || 'Email verified successfully!');
+
+      // Redirect to login after a short delay so the user can read the message.
+      setTimeout(() => {
+        navigate('/login');
+      }, 3000);
+    } catch (err) {
+      console.error('❌ Fetch error:', err);
+      setStatus('error');
+      setMessage(err.message || 'Network error. Please try again.');
+    }
+  }, [token, navigate]);
 
   useEffect(() => {
     if (hasRunRef.current) {
       return;
     }
-
     hasRunRef.current = true;
-
-    const verifyEmail = async () => {
-      const token = searchParams.get('token');
-
-      if (!token) {
-        setStatus('error');
-        setMessage('Invalid verification link. No token found.');
-        return;
-      }
-
-      try {
-        const url = `http://localhost:5000/api/users/verify-email/${token}`;
-        
-        const res = await fetch(url);
-        const data = await res.json();
-        
-        if (!res.ok) {
-          setStatus('error');
-          setMessage(data.msg || 'Verification failed');
-          return;
-        }
-        
-        setStatus('success');
-        setMessage(data.msg || 'Email verified successfully!');
-        
-        // Redirect to login after 3 seconds
-        setTimeout(() => {
-          navigate('/login');
-        }, 3000);
-      } catch (err) {
-        console.error('❌ Fetch error:', err);
-        setStatus('error');
-        setMessage(err.message || 'Network error. Please try again.');
-      }
-    };
-
     verifyEmail();
-  }, [searchParams, navigate]);
+  }, [verifyEmail]);
+
+  const handleRetry = () => {
+    verifyEmail();
+  };
+
+  const statusCopy = {
+    verifying: {
+      title: 'Verifying your email',
+      helper: 'Please wait while we confirm your account details.',
+    },
+    success: {
+      title: 'Email verified!',
+      helper: 'You can now log in and start exploring the latest updates.',
+    },
+    error: {
+      title: 'Verification failed',
+      helper: 'The link may have expired or already been used. Try again or request a new one.',
+    },
+  };
+
+  const renderStatusIcon = () => {
+    if (status === 'verifying') {
+      return (
+        <div className="w-20 h-20 rounded-full bg-primary-50 dark:bg-slate-800 flex items-center justify-center">
+          <Loader2 className="w-10 h-10 text-primary-600 dark:text-primary-400 animate-spin" aria-hidden="true" />
+        </div>
+      );
+    }
+
+    if (status === 'success') {
+      return (
+        <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
+          <CheckCircle2 size={40} aria-hidden="true" />
+        </div>
+      );
+    }
+
+    return (
+      <div className="w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400">
+        <XCircle size={40} aria-hidden="true" />
+      </div>
+    );
+  };
+
+  const description = status === 'verifying' ? statusCopy[status].helper : message || statusCopy[status].helper;
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        {status === 'verifying' && (
-          <>
-            <div className="spinner"></div>
-            <h2>Verifying Your Email...</h2>
-            <p>Please wait while we verify your email address.</p>
-          </>
-        )}
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-primary-50 to-accent-50 dark:from-gray-950 dark:to-gray-900 px-4 py-8">
+      <div className="w-full max-w-lg">
+        <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-3xl shadow-2xl p-8 sm:p-10 text-center space-y-6">
+          <div className="flex justify-center">{renderStatusIcon()}</div>
 
-        {status === 'success' && (
-          <>
-            <div className="success-icon">✅</div>
-            <h2>Email Verified!</h2>
-            <p className="success-message">{message}</p>
-            <p>Redirecting to login page...</p>
-            <Link to="/login" className="auth-button">Go to Login</Link>
-          </>
-        )}
+          <div className="space-y-3">
+            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">
+              {statusCopy[status].title}
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300" role="status">
+              {description}
+            </p>
+            {status !== 'verifying' && (
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {statusCopy[status].helper}
+              </p>
+            )}
+          </div>
 
-        {status === 'error' && (
-          <>
-            <div className="error-icon">❌</div>
-            <h2>Verification Failed</h2>
-            <p className="error-message">{message}</p>
-            <div className="auth-footer">
-              <Link to="/login">Back to Login</Link>
-              <span> | </span>
-              <Link to="/register">Register Again</Link>
+          {status === 'verifying' && (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              You will be redirected to the login page once verification finishes.
+            </p>
+          )}
+
+          {status === 'success' && (
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <Link 
+                to="/login" 
+                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-all duration-300 shadow-lg"
+              >
+                <LogIn size={18} />
+                Go to Login
+              </Link>
+              <Link 
+                to="/" 
+                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white font-semibold rounded-lg hover:bg-gray-200 dark:hover:bg-slate-700 transition-all duration-300"
+              >
+                <ArrowLeft size={18} />
+                Back Home
+              </Link>
             </div>
-          </>
-        )}
+          )}
+
+          {status === 'error' && (
+            <div className="space-y-4 pt-2">
+              <button 
+                type="button" 
+                onClick={handleRetry}
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-all duration-300 shadow-lg"
+              >
+                <Loader2 size={18} className="animate-spin" />
+                Try Again
+              </button>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Need a new link?{' '}
+                <Link to="/register" className="text-primary-600 dark:text-primary-400 font-semibold hover:underline">
+                  Register again
+                </Link>{' '}
+                to receive a fresh verification email.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
-
-      <style jsx>{`
-        .spinner {
-          border: 4px solid #f3f3f3;
-          border-top: 4px solid #1e40af;
-          border-radius: 50%;
-          width: 50px;
-          height: 50px;
-          animation: spin 1s linear infinite;
-          margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-
-        .success-icon, .error-icon {
-          font-size: 64px;
-          margin-bottom: 20px;
-        }
-
-        .success-message {
-          color: #10b981;
-          font-weight: 500;
-          margin: 15px 0;
-        }
-
-        .error-message {
-          color: #dc2626;
-          font-weight: 500;
-          margin: 15px 0;
-        }
-
-        .auth-footer span {
-          margin: 0 10px;
-          color: #6b7280;
-        }
-      `}</style>
     </div>
   );
 };

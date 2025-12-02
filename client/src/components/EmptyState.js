@@ -1,13 +1,13 @@
 import React from 'react';
-import { FaInbox } from 'react-icons/fa'; // A nice icon for "empty"
-import './EmptyState.css';
+import { InboxIcon } from 'lucide-react';
 
-// This component takes a "message" prop so we can reuse it
 const EmptyState = ({ message }) => {
   return (
-    <div className="empty-state">
-      <FaInbox className="empty-state-icon" />
-      <p className="empty-state-message">{message}</p>
+    <div className="flex flex-col items-center justify-center py-16 px-4">
+      <div className="text-gray-300 dark:text-gray-600 mb-4">
+        <InboxIcon size={64} />
+      </div>
+      <p className="text-lg text-gray-600 dark:text-gray-400 text-center">{message}</p>
     </div>
   );
 };

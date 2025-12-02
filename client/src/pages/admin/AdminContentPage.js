@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import RichTextEditor from '../../components/RichTextEditor';
-import './AdminContentPage.css';
+import CopyButton from '../../components/CopyButton';
+import { FileText, Check, AlertCircle, Inbox } from 'lucide-react';
 
 const AdminContentPage = () => {
   // State for the editor form
@@ -10,35 +11,25 @@ const AdminContentPage = () => {
     title: '', summary: '', imageUrl: '', videoUrl: '', source: '', category: '', language: 'en',
   });
   const [content, setContent] = useState('');
-  const [submissions, setSubmissions] = useState([]); // Combined submissions + raw articles
+  const [submissions, setSubmissions] = useState([]);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState(null);
-  const [selectedSubmissionType, setSelectedSubmissionType] = useState(null); // 'submission' or 'raw'
+  const [selectedSubmissionType, setSelectedSubmissionType] = useState(null);
   const [isPublishing, setIsPublishing] = useState(false);
-  const [activeTab, setActiveTab] = useState('school'); // 'school' or 'external'
+  const [activeTab, setActiveTab] = useState('school');
 
   const fetchSubmissions = async () => {
     try {
-      // Fetch both Institution Submissions and External Raw Articles
       const [submissionsRes, rawArticlesRes] = await Promise.all([
         axios.get('/api/submissions'),
         axios.get('/api/submissions/raw-articles')
       ]);
 
-      // Combine both, mark type, sort by date
       const combined = [
         ...submissionsRes.data.map(s => ({ ...s, type: 'submission' })),
         ...rawArticlesRes.data.map(r => ({ ...r, type: 'raw' }))
       ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       setSubmissions(combined);
-      
-      // Scroll inbox to top to show recently added articles
-      const inboxList = document.querySelector('.inbox-list');
-      if (inboxList) {
-        setTimeout(() => {
-          inboxList.scrollTop = 0;
-        }, 0);
-      }
     } catch (err) {
       console.error('Error fetching submissions:', err.response ? err.response.data : err.message);
       toast.error('Failed to fetch articles');
@@ -56,15 +47,13 @@ const AdminContentPage = () => {
   };
 
   const handleCurate = (item) => {
-    // Check type: 'submission' = Institution article (has all fields)
-    // or 'raw' = External article (only title, source, url)
     const isInstitutionSubmission = item.type === 'submission';
     
     setFormData({
       title: item.title || '',
       summary: isInstitutionSubmission ? (item.summary || '') : '',
       imageUrl: isInstitutionSubmission ? (item.imageUrl || '') : '',
-      videoUrl: item.videoUrl || '', // Include videoUrl from both types
+      videoUrl: item.videoUrl || '',
       source: item.source || '',
       category: '',
       language: isInstitutionSubmission ? (item.contentLanguage || 'en') : 'en',
@@ -72,56 +61,49 @@ const AdminContentPage = () => {
     setContent(isInstitutionSubmission ? (item.content || '') : '');
     setSelectedSubmissionId(item._id);
     setSelectedSubmissionType(item.type);
-    
-    // Auto-scroll to form
-    const editorPanel = document.querySelector('.editor-panel');
-    if (editorPanel) {
-      editorPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
   };
 
   const onSubmit = async (e) => {
     e.preventDefault();
     
-    // Validation
     if (!title.trim()) {
-      toast.error('❌ Article title is required');
+      toast.error('Article title is required');
       return;
     }
 
     if (title.trim().length < 5) {
-      toast.error('❌ Title must be at least 5 characters');
+      toast.error('Title must be at least 5 characters');
       return;
     }
 
     if (!summary.trim()) {
-      toast.error('❌ Article summary is required for preview cards');
+      toast.error('Article summary is required for preview cards');
       return;
     }
 
     if (summary.trim().length < 20) {
-      toast.error('❌ Summary should be at least 20 characters');
+      toast.error('Summary should be at least 20 characters');
       return;
     }
 
     if (!content.trim() || content === '<p><br></p>') {
-      toast.error('❌ Article content cannot be empty');
+      toast.error('Article content cannot be empty');
       return;
     }
 
     const contentWordCount = content.replace(/<[^>]*>/g, '').split(/\s+/).filter(word => word).length;
     if (contentWordCount < 50) {
-      toast.error(`❌ Article content too short (${contentWordCount} words, minimum 50 needed)`);
+      toast.error(`Article content too short (${contentWordCount} words, minimum 50 needed)`);
       return;
     }
 
     if (!imageUrl.trim()) {
-      toast.error('❌ Featured image URL is required');
+      toast.error('Featured image URL is required');
       return;
     }
 
     if (!category.trim()) {
-      toast.error('❌ Article category is required');
+      toast.error('Article category is required');
       return;
     }
 
@@ -133,7 +115,7 @@ const AdminContentPage = () => {
         summary: summary.trim(),
         content: content.trim(),
         imageUrl: imageUrl.trim(),
-        videoUrl: videoUrl.trim() || undefined, // Optional video
+        videoUrl: videoUrl.trim() || undefined,
         source: source.trim(),
         category: category.trim(),
         language,
@@ -141,14 +123,11 @@ const AdminContentPage = () => {
 
       await axios.post('/api/articles', newArticle);
       
-      // Mark the source as used based on type
       if (selectedSubmissionId && selectedSubmissionType) {
         try {
           if (selectedSubmissionType === 'submission') {
-            // Mark Submission as published
             await axios.put(`/api/submissions/${selectedSubmissionId}`);
           } else if (selectedSubmissionType === 'raw') {
-            // Mark RawArticle as published
             await axios.put(`/api/submissions/raw-articles/${selectedSubmissionId}`);
           }
         } catch (err) {
@@ -156,9 +135,8 @@ const AdminContentPage = () => {
         }
       }
       
-      toast.success('✨ Article published successfully!');
+      toast.success('Article published successfully!');
       
-      // Reset form
       setFormData({ title: '', summary: '', imageUrl: '', videoUrl: '', source: '', category: '', language: 'en' });
       setContent('');
       setSelectedSubmissionId(null);
@@ -170,95 +148,109 @@ const AdminContentPage = () => {
       const errorCode = err.response?.data?.code;
       const errorMsg = err.response?.data?.message || 'Error publishing article';
 
-      if (errorCode === 'TITLE_REQUIRED') {
-        toast.error('❌ ' + errorMsg);
-      } else if (errorCode === 'TITLE_TOO_SHORT') {
-        toast.error('❌ ' + errorMsg);
-      } else if (errorCode === 'SUMMARY_REQUIRED') {
-        toast.error('❌ ' + errorMsg);
-      } else if (errorCode === 'SUMMARY_TOO_SHORT') {
-        toast.error('❌ ' + errorMsg);
+      if (errorCode === 'TITLE_REQUIRED' || errorCode === 'TITLE_TOO_SHORT') {
+        toast.error(errorMsg);
+      } else if (errorCode === 'SUMMARY_REQUIRED' || errorCode === 'SUMMARY_TOO_SHORT') {
+        toast.error(errorMsg);
       } else if (errorCode === 'CONTENT_REQUIRED') {
-        toast.error('❌ ' + errorMsg);
+        toast.error(errorMsg);
       } else if (errorCode === 'IMAGE_REQUIRED') {
-        toast.error('❌ ' + errorMsg + ' (Make sure it\'s a valid URL)');
-      } else if (errorCode === 'CATEGORY_REQUIRED') {
-        toast.error('❌ ' + errorMsg);
-      } else if (errorCode === 'PERMISSION_DENIED') {
-        toast.error('❌ ' + errorMsg);
-      } else if (errorCode === 'SERVER_ERROR') {
-        toast.error('❌ ' + errorMsg);
+        toast.error(errorMsg + ' (Make sure it\'s a valid URL)');
+      } else if (errorCode === 'CATEGORY_REQUIRED' || errorCode === 'PERMISSION_DENIED') {
+        toast.error(errorMsg);
       } else {
-        toast.error('❌ Failed to publish: ' + errorMsg);
+        toast.error('Failed to publish: ' + errorMsg);
       }
     } finally {
       setIsPublishing(false);
     }
   };
 
+  const schoolSubmissions = submissions.filter(s => s.type === 'submission');
+  const externalSubmissions = submissions.filter(s => s.type === 'raw');
+  const activeSubmissions = activeTab === 'school' ? schoolSubmissions : externalSubmissions;
+
   return (
-    <div className="main-panels">
-      <div className="inbox-panel">
-        <h2>📥 Inbox</h2>
-        
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Inbox Panel */}
+      <div className="lg:col-span-1 space-y-4">
+        <div className="flex items-center gap-2 mb-6">
+          <Inbox size={28} className="text-primary-600" />
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Inbox</h2>
+        </div>
+
         {/* Tabs */}
-        <div className="inbox-tabs">
+        <div className="flex gap-2 mb-6 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
           <button 
-            className={`inbox-tab ${activeTab === 'school' ? 'active' : ''}`}
             onClick={() => setActiveTab('school')}
+            className={`flex-1 px-4 py-3 font-semibold rounded-lg transition-all duration-300 ${
+              activeTab === 'school'
+                ? 'bg-primary-600 text-white shadow-md'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+            }`}
           >
-            🏫 School Submissions ({submissions.filter(s => s.type === 'submission').length})
+            🏫 Institution ({schoolSubmissions.length})
           </button>
           <button 
-            className={`inbox-tab ${activeTab === 'external' ? 'active' : ''}`}
             onClick={() => setActiveTab('external')}
+            className={`flex-1 px-4 py-3 font-semibold rounded-lg transition-all duration-300 ${
+              activeTab === 'external'
+                ? 'bg-primary-600 text-white shadow-md'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+            }`}
           >
-            🔗 External Articles ({submissions.filter(s => s.type === 'raw').length})
+            📰 External ({externalSubmissions.length})
           </button>
         </div>
 
-        <div className="inbox-list">
-          {(() => {
-            const filtered = activeTab === 'school' 
-              ? submissions.filter(s => s.type === 'submission')
-              : submissions.filter(s => s.type === 'raw');
-              
-            return filtered.length > 0 ? (
-              filtered.map(item => (
-              <div key={item._id} className="inbox-item">
-                <div className="inbox-item-content">
-                  <p className="inbox-item-title">
-                    {item.title}
+        {/* Submissions List */}
+        <div className="space-y-2 max-h-96 overflow-y-auto">
+          {activeSubmissions.length > 0 ? (
+            activeSubmissions.map(item => (
+              <div key={item._id} className="bg-white dark:bg-slate-800 rounded-lg p-3 hover:shadow-md transition-shadow">
+                <p className="font-semibold text-gray-900 dark:text-white text-sm line-clamp-2 mb-1">
+                  {item.title}
+                </p>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                  From: <strong>{item.source}</strong>
+                </p>
+                {item.summary && (
+                  <p className="text-xs text-gray-500 dark:text-gray-500 line-clamp-2 mb-2">
+                    {item.summary.substring(0, 80)}...
                   </p>
-                  <p className="inbox-item-source">From: <strong>{item.source}</strong></p>
-                  {item.summary && <p className="inbox-item-preview">{item.summary.substring(0, 80)}...</p>}
-                  {item.url && (
-                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="view-source-link">
-                      🔗 View Source
-                    </a>
-                  )}
-                </div>
+                )}
+                {item.url && (
+                  <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary-600 hover:text-primary-700 mb-2 inline-block">
+                    🔗 View Source
+                  </a>
+                )}
                 <button 
                   onClick={() => handleCurate(item)}
-                  className="curate-button"
+                  className="w-full px-3 py-1 bg-primary-600 text-white text-xs font-semibold rounded hover:bg-primary-700 transition-colors"
                 >
-                  ✎ Curate
+                  Curate
                 </button>
               </div>
             ))
-            ) : (
-              <p className="empty-inbox">No pending articles. ✓</p>
-            );
-          })()}
+          ) : (
+            <p className="text-center text-gray-500 dark:text-gray-500 py-4">No pending articles</p>
+          )}
         </div>
       </div>
 
-      <div className="editor-panel">
-        <h2>📝 Rich Text Editor</h2>
-        <form onSubmit={onSubmit}>
+      {/* Editor Panel */}
+      <div className="lg:col-span-2">
+        <div className="flex items-center gap-2 mb-6">
+          <FileText size={28} className="text-primary-600" />
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Rich Text Editor</h2>
+        </div>
+
+        <form onSubmit={onSubmit} className="space-y-6">
           {/* Title */}
-          <div className="form-group">
-            <label htmlFor="title">Article Title *</label>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-5 space-y-2">
+            <label htmlFor="title" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              Article Title *
+            </label>
             <input 
               id="title"
               type="text" 
@@ -267,14 +259,15 @@ const AdminContentPage = () => {
               onChange={onChange} 
               placeholder="Enter article title..."
               required 
+              className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-600 transition-all"
             />
           </div>
 
           {/* Language */}
-          <div className="form-group">
-            <label>Language *</label>
-            <div className="language-options">
-              <label className={language === 'en' ? 'selected' : ''}>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-5 space-y-3">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Language *</label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="radio"
                   name="language"
@@ -282,9 +275,9 @@ const AdminContentPage = () => {
                   checked={language === 'en'}
                   onChange={onChange}
                 />
-                English
+                <span className="text-gray-700 dark:text-gray-300">English</span>
               </label>
-              <label className={language === 'kn' ? 'selected' : ''}>
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="radio"
                   name="language"
@@ -292,33 +285,41 @@ const AdminContentPage = () => {
                   checked={language === 'kn'}
                   onChange={onChange}
                 />
-                ಕನ್ನಡ
+                <span className="text-gray-700 dark:text-gray-300">ಕನ್ನಡ</span>
               </label>
             </div>
           </div>
 
           {/* Featured Image URL */}
-          <div className="form-group">
-            <label htmlFor="imageUrl">Featured Image URL *</label>
-            <input 
-              id="imageUrl"
-              type="text" 
-              name="imageUrl" 
-              value={imageUrl} 
-              onChange={onChange}
-              placeholder="https://example.com/image.jpg"
-              required 
-            />
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-5 space-y-2">
+            <label htmlFor="imageUrl" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              Featured Image URL *
+            </label>
+            <div className="flex gap-2">
+              <input 
+                id="imageUrl"
+                type="text" 
+                name="imageUrl" 
+                value={imageUrl} 
+                onChange={onChange}
+                placeholder="https://example.com/image.jpg"
+                required 
+                className="flex-1 px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-600 transition-all"
+              />
+              {imageUrl && <CopyButton text={imageUrl} label="Copy URL" />}
+            </div>
             {imageUrl && (
-              <div className="image-preview">
-                <img src={imageUrl} alt="Preview" onError={(e) => e.target.style.display = 'none'} />
+              <div className="mt-3 rounded-lg overflow-hidden shadow-md max-h-48">
+                <img src={imageUrl} alt="Preview" className="w-full h-48 object-cover" loading="lazy" decoding="async" onError={(e) => e.target.style.display = 'none'} />
               </div>
             )}
           </div>
 
-          {/* Optional Video URL */}
-          <div className="form-group">
-            <label htmlFor="videoUrl">Video URL (Optional)</label>
+          {/* Video URL */}
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-5 space-y-2">
+            <label htmlFor="videoUrl" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              Video URL (Optional)
+            </label>
             <input 
               id="videoUrl"
               type="url" 
@@ -326,13 +327,16 @@ const AdminContentPage = () => {
               value={videoUrl} 
               onChange={onChange}
               placeholder="https://youtube.com/watch?v=... or https://example.com/video.mp4"
+              className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-600 transition-all"
             />
-            <small>📹 Add YouTube link or direct video URL (optional)</small>
+            <p className="text-xs text-gray-600 dark:text-gray-400">Add YouTube link or direct video URL (optional)</p>
           </div>
 
-          {/* Short Summary */}
-          <div className="form-group">
-            <label htmlFor="summary">Short Summary (for Card) *</label>
+          {/* Summary */}
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-5 space-y-2">
+            <label htmlFor="summary" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              Short Summary (for Card) *
+            </label>
             <textarea 
               id="summary"
               rows="3" 
@@ -341,23 +345,30 @@ const AdminContentPage = () => {
               onChange={onChange}
               placeholder="Write a brief summary for article cards..."
               required
+              className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-600 transition-all resize-none"
             ></textarea>
           </div>
 
-          {/* Rich Content Editor */}
-          <div className="form-group">
-            <label htmlFor="content">Full Article Content *</label>
-            <p className="editor-hint">💡 Use the toolbar to format text, insert images, and embed videos</p>
+          {/* Content Editor */}
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-5 space-y-3">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              Full Article Content *
+            </label>
+            <p className="text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-2 rounded-lg">
+              Use the toolbar to format text, insert images, and embed videos
+            </p>
             <RichTextEditor 
               value={content}
               onChange={setContent}
-              placeholder="Write your article content... Include text, images, and YouTube videos!"
+              placeholder="Write your article content..."
             />
           </div>
 
           {/* Source */}
-          <div className="form-group">
-            <label htmlFor="source">Source</label>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-5 space-y-2">
+            <label htmlFor="source" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              Source
+            </label>
             <input 
               id="source"
               type="text" 
@@ -365,12 +376,15 @@ const AdminContentPage = () => {
               value={source} 
               onChange={onChange}
               placeholder="e.g., BBC News, Reuters"
+              className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-600 transition-all"
             />
           </div>
 
           {/* Category */}
-          <div className="form-group">
-            <label htmlFor="category">Category / Tag *</label>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-5 space-y-2">
+            <label htmlFor="category" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              Category / Tag *
+            </label>
             <input 
               id="category"
               type="text" 
@@ -379,16 +393,18 @@ const AdminContentPage = () => {
               onChange={onChange} 
               placeholder="e.g., ExamAlert, BreakingNews"
               required 
+              className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-600 transition-all"
             />
           </div>
 
           {/* Submit Button */}
           <button 
             type="submit" 
-            className="publish-button"
+            className="w-full py-4 px-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-lg hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
             disabled={isPublishing}
           >
-            {isPublishing ? '⏳ Publishing...' : '🚀 Publish Article'}
+            <Check size={20} />
+            {isPublishing ? 'Publishing...' : 'Publish Article'}
           </button>
         </form>
       </div>

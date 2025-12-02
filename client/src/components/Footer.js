@@ -1,80 +1,80 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import './Footer.css';
+import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
 
 const Footer = () => {
-  const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
-
-  const handleNewsletterSubmit = (e) => {
-    e.preventDefault();
-    if (email) {
-      setSubscribed(true);
-      setEmail('');
-      setTimeout(() => setSubscribed(false), 3000);
-    }
-  };
+  const socialLinks = [
+    { name: 'Facebook', icon: Facebook },
+    { name: 'Twitter', icon: Twitter },
+    { name: 'Instagram', icon: Instagram },
+    { name: 'LinkedIn', icon: Linkedin },
+  ];
 
   return (
-    <footer className="footer">
-      <div className="footer-content">
-        <div className="footer-section">
-          <h4>News Portal</h4>
-          <p>Your daily source for educational updates. Stay informed, stay ahead.</p>
-          <div className="social-icons">
-            <a href="#facebook" title="Facebook" aria-label="Follow us on Facebook"><i className="fab fa-facebook-f"></i></a>
-            <a href="#twitter" title="Twitter" aria-label="Follow us on Twitter"><i className="fab fa-twitter"></i></a>
-            <a href="#instagram" title="Instagram" aria-label="Follow us on Instagram"><i className="fab fa-instagram"></i></a>
-            <a href="#linkedin" title="LinkedIn" aria-label="Follow us on LinkedIn"><i className="fab fa-linkedin-in"></i></a>
+    <footer className="bg-gray-900 dark:bg-black text-gray-100 mt-auto">
+      {/* Main Footer Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-12">
+          
+          {/* Brand Section */}
+          <div className="space-y-4">
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent">
+              📰 News Portal
+            </h3>
+            <p className="text-gray-400 leading-relaxed">
+              Your daily source for educational updates. Stay informed, stay ahead.
+            </p>
+            <div className="flex gap-4">
+              {socialLinks.map(({ name, icon: Icon }) => (
+                <button
+                  type="button"
+                  key={name}
+                  className="p-2 rounded-full bg-gray-800 text-gray-300 transition-colors cursor-not-allowed"
+                  title={`${name} page coming soon`}
+                  aria-label={`${name} page coming soon`}
+                >
+                  <Icon size={20} />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <h4 className="text-lg font-bold mb-6 text-white">Quick Links</h4>
+            <ul className="space-y-3">
+              <li><Link to="/about" className="text-gray-400 hover:text-primary-400 transition-colors">About Us</Link></li>
+              <li><Link to="/contact" className="text-gray-400 hover:text-primary-400 transition-colors">Contact</Link></li>
+              <li><Link to="/privacy" className="text-gray-400 hover:text-primary-400 transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="text-gray-400 hover:text-primary-400 transition-colors">Terms of Service</Link></li>
+            </ul>
+          </div>
+
+          {/* Newsletter Signup */}
+          <div>
+            <h4 className="text-lg font-bold mb-6 text-white">Newsletter</h4>
+            <p className="text-gray-400 text-sm">
+              📧 Stay updated with latest news and updates.
+            </p>
+            <p className="text-gray-500 text-xs mt-4">Coming soon...</p>
           </div>
         </div>
 
-        <div className="footer-section">
-          <h4>Quick Links</h4>
-          <ul>
-            <li><Link to="/about">About Us</Link></li>
-            <li><Link to="/contact">Contact</Link></li>
-            <li><Link to="/privacy">Privacy Policy</Link></li>
-            <li><Link to="/">Terms of Service</Link></li>
-          </ul>
-        </div>
+        {/* Divider */}
+        <div className="border-t border-gray-800"></div>
 
-        <div className="footer-section">
-          <h4>Categories</h4>
-          <ul>
-            <li><a href="#exams">📋 Exam Alerts</a></li>
-            <li><a href="#scholarships">🎓 Scholarships</a></li>
-            <li><a href="#guidelines">📚 Guidelines</a></li>
-            <li><a href="#internships">💼 Internships</a></li>
-          </ul>
-        </div>
-
-        <div className="footer-section newsletter-section">
-          <h4>Newsletter</h4>
-          <p>Subscribe to get the latest news delivered to your inbox.</p>
-          <form onSubmit={handleNewsletterSubmit} className="newsletter-form">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              aria-label="Email address"
-            />
-            <button type="submit" className="btn btn-primary">Subscribe</button>
-          </form>
-          {subscribed && <p className="success-message">✓ Thanks for subscribing!</p>}
-        </div>
-      </div>
-
-      <div className="footer-bottom">
-        <p>&copy; {new Date().getFullYear()} News Portal. All Rights Reserved.</p>
-        <div className="footer-legal">
-          <Link to="/privacy">Privacy</Link>
-          <span>•</span>
-          <Link to="/">Terms</Link>
-          <span>•</span>
-          <a href="#contact">Contact</a>
+        {/* Footer Bottom */}
+        <div className="py-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <p className="text-gray-500 text-sm">
+            &copy; {new Date().getFullYear()} News Portal. All Rights Reserved.
+          </p>
+          <div className="flex gap-4 text-sm text-gray-500">
+            <Link to="/privacy" className="hover:text-primary-400 transition-colors">Privacy</Link>
+            <span>•</span>
+            <Link to="/terms" className="hover:text-primary-400 transition-colors">Terms</Link>
+            <span>•</span>
+            <Link to="/contact" className="hover:text-primary-400 transition-colors">Contact</Link>
+          </div>
         </div>
       </div>
     </footer>
