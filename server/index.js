@@ -7,6 +7,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -14,6 +15,9 @@ const PORT = process.env.PORT || 5000;
 // ==================== MIDDLEWARE ====================
 app.use(cors());
 app.use(express.json());
+
+// Serve uploaded images as static files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ==================== DATABASE CONNECTION ====================
 mongoose.connect(process.env.MONGO_URI)
@@ -38,13 +42,13 @@ app.use('/api/bookmarks', require('./routes/bookmarkRoutes'));
 app.use('/api/search', require('./routes/searchRoutes'));
 app.use('/api/submissions', require('./routes/submissionRoutes'));
 app.use('/api/events', require('./routes/eventRoutes'));
+app.use('/api', require('./routes/uploadRoutes'));
 
 // Legacy routes for backward compatibility
 const { toggleBookmark, getAuthUser } = require('./controllers/userController');
 const auth = require('./middleware/auth');
 app.post('/api/articles/:id/bookmark', auth, toggleBookmark);
 app.get('/api/auth', auth, getAuthUser); // Legacy auth route
-app.post('/api/register', require('./controllers/userController').registerUser); // Legacy register route
 
 // ==================== ERROR HANDLING ====================
 

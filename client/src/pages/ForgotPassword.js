@@ -12,7 +12,7 @@ const ForgotPassword = () => {
     e.preventDefault();
 
     if (!email) {
-      toast.error('❌ Please enter your email address');
+      toast.error('Please enter your email address');
       return;
     }
 
@@ -20,12 +20,12 @@ const ForgotPassword = () => {
 
     try {
       const res = await axios.post('/api/users/forgot-password', { email });
-      toast.success('✅ ' + res.data.msg);
+      toast.success(res.data.msg);
       setEmailSent(true);
     } catch (err) {
       console.error('Forgot password error:', err);
       const errorMsg = err.response?.data?.msg || 'Failed to send reset email';
-      toast.error('❌ ' + errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

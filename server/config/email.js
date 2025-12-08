@@ -24,11 +24,9 @@ transporter.verify((error, success) => {
 });
 
 /**
- * Send verification email
+ * Send verification email with OTP
  */
-const sendVerificationEmail = async (email, username, verificationToken) => {
-  const verificationUrl = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}`;
-
+const sendVerificationEmail = async (email, username, verificationOTP) => {
   const mailOptions = {
     from: `"News Portal" <${process.env.EMAIL_USER}>`,
     to: email,
@@ -42,7 +40,8 @@ const sendVerificationEmail = async (email, username, verificationToken) => {
           .container { max-width: 600px; margin: 0 auto; padding: 20px; }
           .header { background: #1e40af; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
           .content { background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; }
-          .button { display: inline-block; padding: 12px 30px; background: #1e40af; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .otp-box { background: #1e40af; color: white; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0; }
+          .otp-code { font-size: 32px; font-weight: bold; letter-spacing: 5px; font-family: monospace; }
           .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 14px; }
         </style>
       </head>
@@ -53,14 +52,13 @@ const sendVerificationEmail = async (email, username, verificationToken) => {
           </div>
           <div class="content">
             <h2>Hi ${username}! 👋</h2>
-            <p>Thank you for registering with News Portal. Please verify your email address to activate your account.</p>
-            <p>Click the button below to verify your email:</p>
-            <div style="text-align: center;">
-              <a href="${verificationUrl}" class="button">Verify Email Address</a>
+            <p>Thank you for registering with News Portal. Your verification code is below:</p>
+            <div class="otp-box">
+              <p style="margin: 0; font-size: 12px; color: #e0e0e0;">Your verification code:</p>
+              <div class="otp-code">${verificationOTP}</div>
             </div>
-            <p>Or copy and paste this link into your browser:</p>
-            <p style="word-break: break-all; color: #1e40af;">${verificationUrl}</p>
-            <p><strong>This link will expire in 24 hours.</strong></p>
+            <p><strong>This code will expire in 5 minutes.</strong></p>
+            <p>Enter this code on the verification page to activate your account.</p>
             <p>If you didn't create an account, you can safely ignore this email.</p>
           </div>
           <div class="footer">

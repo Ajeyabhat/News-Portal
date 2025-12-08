@@ -25,17 +25,17 @@ const Register = () => {
 
     // Validation
     if (!username || !email || !password || !confirmPassword) {
-      toast.error('❌ Please fill in all fields');
+      toast.error('Please fill in all fields');
       return;
     }
 
     if (password.length < 6) {
-      toast.error('❌ Password must be at least 6 characters');
+      toast.error('Password must be at least 6 characters');
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error('❌ Passwords do not match');
+      toast.error('Passwords do not match');
       return;
     }
 
@@ -50,17 +50,17 @@ const Register = () => {
         role: 'Reader'
       });
 
-      toast.success('✅ Registration successful!');
-      toast.success('📧 Please check your email to verify your account');
+      toast.success('Registration successful');
+      toast.success('Please check your email for the verification code');
       
-      // Redirect to login page after 2 seconds
+      // Redirect to verification page with email
       setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+        navigate('/verify-email', { state: { email } });
+      }, 1500);
     } catch (err) {
       console.error('Registration error:', err);
       const errorMsg = err.response?.data?.msg || 'Registration failed';
-      toast.error('❌ ' + errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

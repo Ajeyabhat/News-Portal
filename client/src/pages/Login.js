@@ -36,7 +36,7 @@ const Login = () => {
     e.preventDefault();
 
     if (!email || !password) {
-      toast.error('❌ Please enter email and password');
+      toast.error('Please enter email and password');
       return;
     }
 
@@ -45,7 +45,7 @@ const Login = () => {
     try {
       const response = await login(email, password);
       
-      toast.success('✅ Login successful!');
+      toast.success('Login successful');
       
       // Redirect based on role
       if (response.user.role === 'Admin') {
@@ -58,12 +58,7 @@ const Login = () => {
     } catch (err) {
       console.error('Login error:', err);
       const errorMsg = err.response?.data?.msg || 'Login failed';
-      
-      if (errorMsg.includes('verify your email')) {
-        toast.error('📧 ' + errorMsg);
-      } else {
-        toast.error('❌ ' + errorMsg);
-      }
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { Bookmark, User, Clock, Calendar, Folder, Edit2, Trash2, AlertCircle, RotateCcw, Home, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
+import { Bookmark, User, Clock, Calendar, Folder, Edit2, Trash2, AlertCircle, RotateCcw, Home } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { formatRelativeTime, calculateReadingTime, getAuthorName } from '../utils/helpers';
 import ConfirmModal from '../components/ConfirmModal';
@@ -18,7 +18,6 @@ const ArticlePage = () => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [zoomLevel, setZoomLevel] = useState(100);
 
   useEffect(() => {
     if (user && article) {
@@ -142,18 +141,6 @@ const ArticlePage = () => {
   const relativeTime = formatRelativeTime(article.createdAt);
   const readingTime = calculateReadingTime(article.content);
 
-  const handleZoomIn = () => {
-    if (zoomLevel < 150) setZoomLevel(zoomLevel + 10);
-  };
-
-  const handleZoomOut = () => {
-    if (zoomLevel > 80) setZoomLevel(zoomLevel - 10);
-  };
-
-  const handleResetZoom = () => {
-    setZoomLevel(100);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
@@ -208,63 +195,27 @@ const ArticlePage = () => {
 
           {/* Article Metadata */}
           <div className="px-8 py-6 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex flex-col gap-4">
-              {/* Meta Info */}
-              <div className="flex flex-wrap gap-4 text-sm md:text-base text-gray-600 dark:text-gray-400">
-                <div className="flex items-center gap-2">
-                  <User size={18} className="text-primary-600" />
-                  <span><strong>{authorName}</strong></span>
-                </div>
-                <span>•</span>
-                <div className="flex items-center gap-2">
-                  <Calendar size={18} className="text-primary-600" />
-                  <span>{relativeTime}</span>
-                </div>
-                <span>•</span>
-                <div className="flex items-center gap-2">
-                  <Clock size={18} className="text-primary-600" />
-                  <span>{readingTime}</span>
-                </div>
-                <span>•</span>
-                <div className="flex items-center gap-2">
-                  <Folder size={18} className="text-primary-600" />
-                  <span className="px-3 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 rounded-full font-semibold text-xs">
-                    {article.category}
-                  </span>
-                </div>
+            <div className="flex flex-wrap gap-4 text-sm md:text-base text-gray-600 dark:text-gray-400">
+              <div className="flex items-center gap-2">
+                <User size={18} className="text-primary-600" />
+                <span><strong>{authorName}</strong></span>
               </div>
-
-              {/* Zoom Controls */}
-              <div className="flex items-center gap-3 pt-2 border-t border-gray-200 dark:border-gray-600">
-                <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">Text Size:</span>
-                <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg p-1 border border-gray-300 dark:border-gray-600">
-                  <button
-                    onClick={handleZoomOut}
-                    disabled={zoomLevel <= 80}
-                    className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    title="Decrease text size (Ctrl + -)"
-                  >
-                    <ZoomOut size={18} className="text-gray-600 dark:text-gray-400" />
-                  </button>
-                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 w-12 text-center">{zoomLevel}%</span>
-                  <button
-                    onClick={handleZoomIn}
-                    disabled={zoomLevel >= 150}
-                    className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    title="Increase text size (Ctrl + +)"
-                  >
-                    <ZoomIn size={18} className="text-gray-600 dark:text-gray-400" />
-                  </button>
-                  {zoomLevel !== 100 && (
-                    <button
-                      onClick={handleResetZoom}
-                      className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ml-1 border-l border-gray-300 dark:border-gray-600"
-                      title="Reset text size"
-                    >
-                      <RotateCw size={16} className="text-gray-600 dark:text-gray-400" />
-                    </button>
-                  )}
-                </div>
+              <span>•</span>
+              <div className="flex items-center gap-2">
+                <Calendar size={18} className="text-primary-600" />
+                <span>{relativeTime}</span>
+              </div>
+              <span>•</span>
+              <div className="flex items-center gap-2">
+                <Clock size={18} className="text-primary-600" />
+                <span>{readingTime}</span>
+              </div>
+              <span>•</span>
+              <div className="flex items-center gap-2">
+                <Folder size={18} className="text-primary-600" />
+                <span className="px-3 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 rounded-full font-semibold text-xs">
+                  {article.category}
+                </span>
               </div>
             </div>
           </div>
@@ -280,11 +231,11 @@ const ArticlePage = () => {
 
           {/* Featured Image */}
           {article.imageUrl && (
-            <div className="w-full h-96 bg-gray-200 dark:bg-gray-700 overflow-hidden">
+            <div className="w-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
               <img 
                 src={article.imageUrl} 
                 alt={article.title} 
-                className="w-full h-full object-cover"
+                className="w-full h-auto object-contain"
                 loading="lazy"
                 decoding="async"
                 onError={(e) => {
@@ -323,7 +274,6 @@ const ArticlePage = () => {
           <div className="px-8 py-8 prose prose-sm dark:prose-invert max-w-none">
             <div 
               className="text-gray-700 dark:text-gray-300 leading-relaxed space-y-4"
-              style={{ fontSize: `${zoomLevel}%` }}
               dangerouslySetInnerHTML={{ __html: article.content }}
             />
           </div>

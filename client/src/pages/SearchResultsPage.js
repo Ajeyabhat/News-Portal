@@ -67,13 +67,13 @@ const SearchResultsPage = () => {
       
       setArticles(results);
       if (results.length === 0) {
-        toast.success(`No articles found for "${query}"`, { icon: '🔍' });
+        toast.success(`No articles found for "${query}"`);
       }
     } catch (err) {
       console.error('Error fetching search results:', err);
       const errorMsg = err.response?.data?.msg || 'Failed to search articles. Please try again.';
       setError(errorMsg);
-      toast.error('❌ ' + errorMsg);
+      toast.error(errorMsg);
     }
     setLoading(false);
   };

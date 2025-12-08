@@ -94,21 +94,58 @@ function App() {
         } />
       </Routes>
       <Toaster
-        position="top-right"
+        position="top-center"
         reverseOrder={false}
-        gutter={8}
+        gutter={12}
         toastOptions={{
-          duration: 2000,
+          duration: 3500,
           style: {
-            background: '#363636',
-            color: '#fff',
+            background: '#ffffff',
+            color: '#1f2937',
+            borderRadius: '12px',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
+            border: '1px solid #e5e7eb',
+            fontSize: '14px',
+            fontWeight: '500',
+            padding: '16px 20px',
+            backdropFilter: 'blur(10px)',
           },
           success: {
-            duration: 1500,
+            duration: 3000,
+            style: {
+              background: '#ecfdf5',
+              color: '#065f46',
+              border: '1px solid #d1fae5',
+            },
+            iconTheme: {
+              primary: '#10b981',
+              secondary: '#ffffff',
+            },
           },
           error: {
-            duration: 3000,
+            duration: 4000,
+            style: {
+              background: '#fef2f2',
+              color: '#7f1d1d',
+              border: '1px solid #fee2e2',
+            },
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#ffffff',
+            },
           },
+          loading: {
+            style: {
+              background: '#f0f9ff',
+              color: '#0c4a6e',
+              border: '1px solid #bae6fd',
+            },
+            iconTheme: {
+              primary: '#0284c7',
+              secondary: '#ffffff',
+            },
+          },
+          className: 'dark:bg-slate-800 dark:text-gray-100 dark:border-slate-700',
         }}
       />
     </>

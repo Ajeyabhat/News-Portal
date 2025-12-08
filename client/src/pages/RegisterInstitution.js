@@ -53,12 +53,12 @@ const RegisterInstitution = () => {
       });
 
       toast.success('Registration successful!');
-      toast.success('Please check your email to verify your account');
+      toast.success('Please check your email for the verification code');
       
-      // Redirect to login page after 2 seconds
+      // Redirect to verification page with email
       setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+        navigate('/verify-email', { state: { email } });
+      }, 1500);
     } catch (err) {
       console.error('Registration error:', err);
       const errorMsg = err.response?.data?.msg || 'Registration failed';

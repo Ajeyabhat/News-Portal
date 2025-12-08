@@ -47,10 +47,11 @@ exports.registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Generate verification token ONCE
-    const verificationToken = crypto.randomBytes(32).toString('hex');
+    // Generate 6-digit OTP
+    const verificationOTP = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
-    // Create user with verification token
+    // Create user with OTP
     const user = new User({
       username,
       email: email.toLowerCase(),
@@ -58,25 +59,26 @@ exports.registerUser = async (req, res) => {
       role: role || 'Reader',
       institutionName: institutionName || undefined,
       emailVerified: false,
-      verificationToken  // Save the SAME token
+      verificationOTP,
+      verificationOTPExpires: otpExpires
     });
 
     await user.save();
 
     console.log('✅ User created:', user.email);
-    console.log('🔐 Verification token saved:', verificationToken);
+    console.log('🔐 Verification OTP generated:', verificationOTP);
 
-    // Send verification email with the SAME token
+    // Send verification email with OTP
     try {
-      await sendVerificationEmail(user.email, user.username, verificationToken);
-      console.log('✅ Verification email sent');
+      await sendVerificationEmail(user.email, user.username, verificationOTP);
+      console.log('✅ Verification email sent with OTP');
     } catch (emailError) {
       console.error('⚠️ Email error:', emailError.message);
     }
 
-    // Return success WITHOUT token (user must verify email first)
+    // Return success WITHOUT OTP (user must verify email first)
     res.status(201).json({
-      msg: 'Registration successful! Please check your email to verify your account.',
+      msg: 'Registration successful! Please check your email for the verification code.',
       user: {
         id: user._id,
         username: user.username,
@@ -205,6 +207,66 @@ exports.verifyEmail = async (req, res) => {
     res.json({ msg: 'Email verified successfully! You can now login.' });
   } catch (err) {
     console.error('❌ Email verification error:', err);
+    res.status(500).json({ msg: 'Server error during verification' });
+  }
+};
+
+/**
+ * POST /api/users/verify-email-otp
+ * Verify email with OTP code
+ */
+exports.verifyEmailOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ msg: 'Email and OTP are required' });
+    }
+
+    // Find user with this email and OTP
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+      return res.status(400).json({ msg: 'User not found' });
+    }
+
+    // Check if already verified
+    if (user.emailVerified) {
+      return res.json({ msg: 'Email already verified! You can login now.' });
+    }
+
+    // Check if OTP exists and hasn't expired
+    if (!user.verificationOTP) {
+      return res.status(400).json({ msg: 'No OTP found. Please register again.' });
+    }
+
+    if (new Date() > user.verificationOTPExpires) {
+      return res.status(400).json({ msg: 'OTP expired. Please register again.' });
+    }
+
+    // Verify OTP
+    if (user.verificationOTP !== otp.toString()) {
+      return res.status(400).json({ msg: 'Invalid OTP' });
+    }
+
+    // Mark email as verified
+    user.emailVerified = true;
+    user.verificationOTP = undefined;
+    user.verificationOTPExpires = undefined;
+    await user.save();
+
+    console.log('✅ Email verified with OTP:', email);
+
+    // Send welcome email
+    try {
+      await sendWelcomeEmail(user.email, user.username);
+    } catch (emailError) {
+      console.error('⚠️  Error sending welcome email:', emailError.message);
+    }
+
+    res.json({ msg: 'Email verified successfully! You can now login.' });
+  } catch (err) {
+    console.error('❌ OTP verification error:', err);
     res.status(500).json({ msg: 'Server error during verification' });
   }
 };

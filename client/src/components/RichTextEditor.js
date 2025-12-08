@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import VideoModal from './VideoModal';
+import ImageModal from './ImageModal';
 import { Image as ImageIcon, Film } from 'lucide-react';
 
 // Add custom Tailwind styles for Quill editor
@@ -82,29 +83,22 @@ if (typeof window !== 'undefined') {
 const RichTextEditor = ({ value, onChange, placeholder = 'Write article content...' }) => {
   const quillRef = useRef(null);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
-  // Handle image insertion
+  // Handle image insertion - URL only
   const handleImageInsert = () => {
-    const input = document.createElement('input');
-    input.setAttribute('type', 'file');
-    input.setAttribute('accept', 'image/*');
-    
-    input.onchange = () => {
-      const file = input.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const editor = quillRef.current?.getEditor();
-          if (editor) {
-            const range = editor.getSelection(true);
-            editor.insertEmbed(range.index, 'image', e.target.result);
-            editor.setSelection(range.index + 1);
-          }
-        };
-        reader.readAsDataURL(file);
-      }
-    };
-    input.click();
+    setIsImageModalOpen(true);
+  };
+
+  // Process image URL from modal
+  const handleImageUrlSubmit = (url) => {
+    const editor = quillRef.current?.getEditor();
+    if (editor) {
+      const range = editor.getSelection(true);
+      editor.insertEmbed(range.index, 'image', url);
+      editor.setSelection(range.index + 1);
+      setIsImageModalOpen(false);
+    }
   };
 
   // Handle video insertion (YouTube or URL)
@@ -247,6 +241,11 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Write article content.
         isOpen={isVideoModalOpen}
         onClose={() => setIsVideoModalOpen(false)}
         onSubmit={handleVideoUrlSubmit}
+      />
+      <ImageModal
+        isOpen={isImageModalOpen}
+        onClose={() => setIsImageModalOpen(false)}
+        onSubmit={handleImageUrlSubmit}
       />
     </div>
   );
