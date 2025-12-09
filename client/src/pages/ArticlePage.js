@@ -63,42 +63,29 @@ const ArticlePage = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchArticle = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await axios.get(`/api/articles/${id}`);
-        setArticle(res.data);
-      } catch (err) {
-        console.error(err);
-        if (err.response?.status === 404) {
-          setError('Article not found.');
-        } else if (err.response?.status === 400) {
-          setError('Invalid article ID.');
-        } else {
-          setError('Failed to load article. Please try again.');
-        }
+  const fetchArticle = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await axios.get(`/api/articles/${id}`);
+      setArticle(res.data);
+    } catch (err) {
+      if (err.response?.status === 404) {
+        setError('Article not found.');
+      } else if (err.response?.status === 400) {
+        setError('Invalid article ID.');
+      } else {
+        setError('Failed to load article. Please try again.');
       }
-      setLoading(false);
-    };
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
     fetchArticle();
   }, [id]);
 
   const retryFetch = () => {
-    setError(null);
-    const fetchArticle = async () => {
-      setLoading(true);
-      try {
-        const res = await axios.get(`/api/articles/${id}`);
-        setArticle(res.data);
-        setError(null);
-      } catch (err) {
-        console.error(err);
-        setError('Failed to load article. Please try again.');
-      }
-      setLoading(false);
-    };
     fetchArticle();
   };
 

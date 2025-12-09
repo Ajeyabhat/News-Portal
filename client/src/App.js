@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import ErrorBoundary from './components/ErrorBoundary';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './pages/HomePage';
@@ -24,11 +25,12 @@ import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
+import NotFound from './pages/NotFound';
 
 
 function App() {
   return (
-    <>
+    <ErrorBoundary>
       <Routes>
         {/* Admin Routes - No Main Layout */}
         <Route 
@@ -47,51 +49,50 @@ function App() {
         </Route>
 
         {/* All Other Routes - With Main Layout */}
-        <Route path="*" element={
-          <Layout>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/register-institution" element={<RegisterInstitution />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/verify-email" element={<VerifyEmail />} />
-              <Route path="/verify" element={<VerifyPage />} />
-              <Route path="/article/:id" element={<ArticlePage />} />
-              <Route path="/search" element={<SearchResultsPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/privacy" element={<PrivacyPage />} />
-              <Route path="/terms" element={<TermsPage />} />
-              
-              <Route 
-                path="/bookmarks" 
-                element={<ProtectedRoute><BookmarksPage /></ProtectedRoute>} 
-              />
+        <Route element={<Layout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/register-institution" element={<RegisterInstitution />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/verify" element={<VerifyPage />} />
+          <Route path="/article/:id" element={<ArticlePage />} />
+          <Route path="/search" element={<SearchResultsPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          
+          <Route 
+            path="/bookmarks" 
+            element={<ProtectedRoute><BookmarksPage /></ProtectedRoute>} 
+          />
 
-              {/* Institution Dashboard */}
-              <Route 
-                path="/institution" 
-                element={
-                  <ProtectedRoute institutionOnly={true}>
-                    <InstitutionDashboard />
-                  </ProtectedRoute>
-                }
-              />
+          {/* Institution Dashboard */}
+          <Route 
+            path="/institution" 
+            element={
+              <ProtectedRoute institutionOnly={true}>
+                <InstitutionDashboard />
+              </ProtectedRoute>
+            }
+          />
 
-              {/* Edit Article Route */}
-              <Route 
-                path="/edit-article/:id" 
-                element={
-                  <ProtectedRoute adminOnly={true}>
-                    <EditArticlePage />
-                  </ProtectedRoute>
-                } 
-              />
-            </Routes>
-          </Layout>
-        } />
+          {/* Edit Article Route */}
+          <Route 
+            path="/edit-article/:id" 
+            element={
+              <ProtectedRoute adminOnly={true}>
+                <EditArticlePage />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* 404 Not Found - Must be last */}
+          <Route path="*" element={<NotFound />} />
+        </Route>
       </Routes>
       <Toaster
         position="top-center"
@@ -148,7 +149,7 @@ function App() {
           className: 'dark:bg-slate-800 dark:text-gray-100 dark:border-slate-700',
         }}
       />
-    </>
+    </ErrorBoundary>
   );
 }
 

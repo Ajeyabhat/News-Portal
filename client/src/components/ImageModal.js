@@ -70,7 +70,7 @@ const ImageModal = ({ isOpen, onClose, onSubmit }) => {
     formData.append('image', file);
 
     try {
-      const response = await fetch('http://localhost:5000/api/upload', {
+      const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
         headers: {
@@ -86,7 +86,8 @@ const ImageModal = ({ isOpen, onClose, onSubmit }) => {
       const data = await response.json();
       
       // Build full URL
-      const fullUrl = `http://localhost:5000${data.imageUrl}`;
+      const baseUrl = axios.defaults.baseURL || window.location.origin;
+      const fullUrl = `${baseUrl}${data.imageUrl}`;
       
       // Show compression stats
       toast.success(

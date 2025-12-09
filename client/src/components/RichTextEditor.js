@@ -64,15 +64,6 @@ const quillStyles = `
   .ql-editor code-block { @apply bg-gray-900 text-gray-100 rounded p-2; }
 `;
 
-// Suppress react-quill findDOMNode warning (known issue with react-quill 2.x)
-const originalError = console.error;
-console.error = function(...args) {
-  if (args[0]?.includes?.('findDOMNode')) {
-    return;
-  }
-  originalError.apply(console, args);
-};
-
 // Add styles to document
 if (typeof window !== 'undefined') {
   const styleSheet = document.createElement('style');

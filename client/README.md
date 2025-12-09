@@ -1,70 +1,185 @@
-# Getting Started with Create React App
+# News Portal - Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern, feature-rich news portal built with React, Vite, and Tailwind CSS. This application provides a seamless experience for reading, bookmarking, and managing news articles with institution support and admin capabilities.
+
+## Features
+
+- 📰 **Article Management** - Browse, search, and read articles
+- 🔖 **Bookmarks** - Save articles for later reading
+- 🏢 **Institution Support** - Dedicated dashboard for institutions to submit articles
+- 👤 **User Authentication** - Secure login with OTP email verification
+- 🎨 **Dark Mode** - Toggle between light and dark themes
+- 🌍 **Multi-language** - Support for multiple languages
+- 🖼️ **Image Uploads** - Optimized image compression with Sharp
+- ⚡ **Rich Text Editor** - Create and edit articles with formatting
+- 🔐 **Admin Dashboard** - Manage users, content, and submissions
+- 📱 **Responsive Design** - Works seamlessly on all devices
+
+## Tech Stack
+
+- **Frontend Framework:** React 18 + Vite
+- **Styling:** Tailwind CSS v4
+- **Routing:** React Router v6
+- **HTTP Client:** Axios
+- **Rich Text Editor:** React Quill
+- **Icons:** Lucide React
+- **Notifications:** React Hot Toast
+
+## Installation
+
+### Prerequisites
+- Node.js (v14+)
+- npm or yarn
+
+### Setup
+
+1. **Install dependencies:**
+```bash
+npm install
+```
+
+2. **Configure environment variables:**
+Create a `.env` file in the root directory:
+```
+VITE_API_BASE_URL=http://localhost:5000
+```
+
+3. **Start development server:**
+```bash
+npm run dev
+```
+
+The app will run at `http://localhost:3001` (or next available port)
 
 ## Available Scripts
 
-In the project directory, you can run:
-
-### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### `npm run dev`
+Runs the app in development mode with hot module replacement.
 
 ### `npm run build`
+Builds the app for production to the `dist` folder.
+- Minifies and optimizes code
+- Creates optimized asset bundles
+- Ready for deployment
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### `npm run preview`
+Preview the production build locally before deployment.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Project Structure
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```
+src/
+├── components/          # Reusable UI components
+│   ├── admin/          # Admin dashboard components
+│   └── ...
+├── pages/              # Page components (routes)
+│   ├── admin/          # Admin pages
+│   └── ...
+├── context/            # React context (Auth, Theme, Language)
+├── services/           # API service functions
+├── utils/              # Utility functions
+├── App.js              # Main app component
+├── App.css             # Global styles
+└── index.js            # Entry point
+```
 
-### `npm run eject`
+## Key Pages
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+- `/` - Home page with featured articles
+- `/login` - User login
+- `/register` - User registration
+- `/register-institution` - Institution registration
+- `/article/:id` - Article detail view
+- `/bookmarks` - Saved articles
+- `/search` - Article search
+- `/admin` - Admin dashboard
+- `/about` - About page
+- `/contact` - Contact page
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Authentication
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+The app uses JWT-based authentication with OTP email verification:
+- 6-digit OTP sent to email during registration
+- 5-minute expiration time
+- 7-day JWT token validity
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Image Optimization
 
-## Learn More
+Images are automatically:
+- Compressed using Sharp (80% compression)
+- Converted to WebP format
+- Resized for optimal performance
+- Limited to 10MB max file size
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Building for Production
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+1. **Build the project:**
+```bash
+npm run build
+```
 
-### Code Splitting
+2. **Deploy the `dist` folder** to your hosting provider (Netlify, Vercel, AWS, etc.)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+3. **Configure environment variables** on your hosting platform with the correct API base URL
 
-### Analyzing the Bundle Size
+## Performance
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+- Production build: **659.22 kB** (gzipped: 179.47 kB)
+- Optimized bundle splitting
+- Lazy-loaded routes
+- Image optimization
 
-### Making a Progressive Web App
+## Development
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Code Style
+- ES6+ JavaScript
+- Functional components with React Hooks
+- Tailwind CSS for styling
+- Mobile-first responsive design
 
-### Advanced Configuration
+### Browser Support
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## Contributing
 
-### Deployment
+When contributing to this project:
+1. Follow the existing code style
+2. Use descriptive commit messages
+3. Test changes thoroughly before submitting
+4. Update documentation as needed
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## Deployment
 
-### `npm run build` fails to minify
+### Netlify
+```bash
+npm run build
+# Deploy the dist folder to Netlify
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### Vercel
+```bash
+npm run build
+# Deploy using Vercel CLI
+```
+
+### Traditional Server
+```bash
+npm run build
+# Copy dist folder to your web server
+# Configure to serve index.html for all routes (SPA)
+```
+
+## Support
+
+For issues or questions, please check:
+- Project documentation in `STRUCTURE.md`
+- Backend API documentation
+- Component Storybook (if available)
+
+## License
+
+This project is proprietary and confidential.
+

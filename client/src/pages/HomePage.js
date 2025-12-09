@@ -31,9 +31,7 @@ const HomePage = () => {
         params.append('category', category);
       }
       const url = `/api/articles?${params.toString()}`;
-      console.log('Fetching from:', url);
       const res = await axios.get(url);
-      console.log('Articles fetched:', res.data);
       setArticles(res.data.articles || res.data);
       if (res.data.pagination) {
         setPagination(res.data.pagination);
@@ -47,7 +45,6 @@ const HomePage = () => {
   }, [language]);
 
   useEffect(() => {
-    console.log('HomePage useEffect triggered - selectedCategory:', selectedCategory);
     fetchArticles(selectedCategory);
   }, [fetchArticles, selectedCategory]);
 

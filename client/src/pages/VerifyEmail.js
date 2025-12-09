@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
+import axios from 'axios';
 import { Loader2, CheckCircle2, XCircle, LogIn, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -64,7 +65,8 @@ const VerifyEmail = () => {
     setMessage('');
 
     try {
-      const res = await fetch('http://localhost:5000/api/users/verify-email-otp', {
+      const baseUrl = axios.defaults.baseURL || 'http://localhost:5000';
+      const res = await fetch(`${baseUrl}/api/users/verify-email-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp: otpCode })

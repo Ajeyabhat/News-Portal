@@ -43,7 +43,7 @@ const Register = () => {
 
     try {
       // Register without auto-login
-      const response = await axios.post('http://localhost:5000/api/users/register', {
+      const response = await axios.post('/api/users/register', {
         username,
         email,
         password,

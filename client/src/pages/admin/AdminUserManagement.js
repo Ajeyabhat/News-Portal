@@ -3,7 +3,7 @@ import { AuthContext } from '../../context/AuthContext';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import ConfirmModal from '../../components/ConfirmModal';
-import { Users, Shield, Trash2, Search, Crown } from 'lucide-react';
+import { Users, Shield, Trash2, Search, Crown, Building2 } from 'lucide-react';
 
 
 const UserManagement = () => {
@@ -26,7 +26,7 @@ const UserManagement = () => {
 
   const handlePromote = async (userId) => {
     try {
-      await axios.put(`http://localhost:5000/api/users/${userId}/role`, { role: 'Admin' });
+      await axios.put(`/api/users/${userId}/role`, { role: 'Admin' });
       fetchUsers();
       toast.success('User promoted to admin successfully!');
     } catch (err) {
@@ -45,7 +45,7 @@ const UserManagement = () => {
 
     setIsDeleting(true);
     try {
-      await axios.delete(`http://localhost:5000/api/users/${userToDelete.id}`);
+      await axios.delete(`/api/users/${userToDelete.id}`);
       fetchUsers();
       toast.success('User deleted successfully!');
       setShowDeleteModal(false);
@@ -116,6 +116,11 @@ const UserManagement = () => {
                           <Crown className="w-3 h-3" />
                           Admin
                         </div>
+                      ) : user.role === 'Institution' ? (
+                        <div className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-amber-600 to-orange-600 text-white text-xs font-semibold rounded-full shadow-md">
+                          <Building2 className="w-3 h-3" />
+                          Institution
+                        </div>
                       ) : (
                         <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-full">
                           <Users className="w-3 h-3" />
@@ -128,16 +133,6 @@ const UserManagement = () => {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2">
-                  {user.role === 'Reader' && (
-                    <button
-                      onClick={() => handlePromote(user._id)}
-                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
-                    >
-                      <Shield className="w-4 h-4" />
-                      Promote to Admin
-                    </button>
-                  )}
-                  
                   {loggedInUser && user._id !== loggedInUser._id && (
                     <button
                       onClick={() => handleDeleteClick(user._id, user.username)}

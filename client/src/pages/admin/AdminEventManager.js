@@ -25,7 +25,7 @@ const EventManager = () => {
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/events', { title, date });
+      await axios.post('/api/events', { title, date });
       fetchEvents(); // Refresh the list
       setTitle('');
       setDate('');
@@ -37,7 +37,7 @@ const EventManager = () => {
 
   const deleteEvent = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/events/${id}`);
+      await axios.delete(`/api/events/${id}`);
       fetchEvents(); // Refresh the list
       toast.success('Event deleted successfully!');
     } catch (err) {
