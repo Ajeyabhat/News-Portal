@@ -19,7 +19,8 @@ const {
   getUserBookmarks,
   getAllUsers,
   updateUserRole,
-  deleteUser
+  deleteUser,
+  bulkDeleteUsers
 } = require('../controllers/userController');
 
 // ==================== RATE LIMITERS ====================
@@ -85,5 +86,6 @@ router.get('/bookmarks', auth, getUserBookmarks);           // GET /api/users/bo
 router.get('/', auth, getAllUsers);                        // GET /api/users
 router.put('/:id/role', auth, updateUserRole);             // PUT /api/users/:id/role
 router.delete('/:id', auth, deleteUser);                   // DELETE /api/users/:id
+router.post('/bulk-delete', auth, bulkDeleteUsers);        // POST /api/users/bulk-delete
 
 module.exports = router;

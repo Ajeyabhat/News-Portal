@@ -465,3 +465,29 @@ exports.deleteUser = async (req, res) => {
     res.status(500).json({ msg: 'Server error' });
   }
 };
+
+/**
+ * POST /api/users/bulk-delete
+ * Delete multiple users (Admin only)
+ */
+exports.bulkDeleteUsers = async (req, res) => {
+  try {
+    const { userIds } = req.body;
+
+    // Validation
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ msg: 'Please provide an array of user IDs' });
+    }
+
+    // Delete all users
+    const result = await User.deleteMany({ _id: { $in: userIds } });
+
+    res.json({ 
+      msg: `${result.deletedCount} user(s) deleted successfully`,
+      deletedCount: result.deletedCount
+    });
+  } catch (err) {
+    console.error('Bulk delete users error:', err);
+    res.status(500).json({ msg: 'Server error' });
+  }
+};

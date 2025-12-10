@@ -7,6 +7,10 @@ This document outlines the improved code organization for the News Portal projec
 
 ## Client-Side Structure (`client/src/`)
 
+The frontend follows a component-based architecture with service layer for API calls.
+
+**Project Status:** Clean and organized - only active folders included.
+
 ### **Services** (`client/src/services/`)
 Centralized API communication layer - all HTTP requests go here.
 
@@ -79,6 +83,10 @@ if (hasPermission(user.role, 'CREATE_ARTICLE')) { ... }
 ---
 
 ## Server-Side Structure (`server/`)
+
+The backend follows a layered architecture with clear separation of concerns.
+
+**Project Status:** Clean - only essential folders with active code included.
 
 ### **Utilities** (`server/utils/`)
 Reusable utility functions for common operations.
@@ -242,4 +250,4 @@ const otp = generateOTP();
 
 ---
 
-*Last Updated: December 8, 2025*
+*Last Updated: December 9, 2025*

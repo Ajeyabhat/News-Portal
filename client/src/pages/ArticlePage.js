@@ -235,11 +235,11 @@ const ArticlePage = () => {
           {/* Article Video */}
           {article.videoUrl && (
             <div className="px-8 py-6 border-b border-gray-200 dark:border-gray-700">
-              <div className="rounded-lg overflow-hidden shadow-md">
+              <div className="rounded-lg overflow-hidden shadow-md aspect-video bg-black">
                 {article.videoUrl.includes('youtube.com') || article.videoUrl.includes('youtu.be') ? (
                   <iframe
                     width="100%"
-                    height="500"
+                    height="100%"
                     src={article.videoUrl.replace('watch?v=', 'embed/')}
                     title="Article Video"
                     frameBorder="0"
@@ -248,7 +248,7 @@ const ArticlePage = () => {
                     className="rounded-lg"
                   ></iframe>
                 ) : (
-                  <video width="100%" height="500" controls className="rounded-lg w-full">
+                  <video width="100%" height="100%" controls className="rounded-lg w-full">
                     <source src={article.videoUrl} type="video/mp4" />
                     Your browser does not support the video tag.
                   </video>

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { X, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 
 const ImageModal = ({ isOpen, onClose, onSubmit }) => {
   const [imageUrl, setImageUrl] = useState('');

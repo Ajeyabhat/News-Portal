@@ -10,8 +10,7 @@ import RegisterInstitution from './pages/RegisterInstitution';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import VerifyEmail from './pages/VerifyEmail'; // New email verification page
-import VerifyPage from './pages/VerifyPage'; // Old verify page (can be removed later)
+import VerifyEmail from './pages/VerifyEmail'; // Email verification page
 import ArticlePage from './pages/ArticlePage';
 import BookmarksPage from './pages/BookmarksPage';
 import SearchResultsPage from './pages/SearchResultsPage';
@@ -57,7 +56,6 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/verify" element={<VerifyPage />} />
           <Route path="/article/:id" element={<ArticlePage />} />
           <Route path="/search" element={<SearchResultsPage />} />
           <Route path="/about" element={<AboutPage />} />

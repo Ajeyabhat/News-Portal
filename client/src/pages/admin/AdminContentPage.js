@@ -171,75 +171,140 @@ const AdminContentPage = () => {
   const activeSubmissions = activeTab === 'school' ? schoolSubmissions : externalSubmissions;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {/* Inbox Panel */}
-      <div className="lg:col-span-1 space-y-4">
-        <div className="flex items-center gap-2 mb-6">
-          <Inbox size={28} className="text-primary-600" />
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Inbox</h2>
+    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      {/* Inbox Panel - 40% */}
+      <div className="lg:col-span-2 space-y-4">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-3 bg-gradient-to-br from-blue-600 to-teal-600 rounded-xl shadow-lg">
+            <Inbox size={28} className="text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Submissions Inbox</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Pending articles ({activeSubmissions.length})</p>
+          </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+        {/* Tabs - Improved */}
+        <div className="flex gap-2 mb-6 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-slate-800 dark:to-slate-700 rounded-lg p-2 shadow-sm">
           <button 
             onClick={() => setActiveTab('school')}
-            className={`flex-1 px-4 py-3 font-semibold rounded-lg transition-all duration-300 ${
+            className={`flex-1 px-4 py-3 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${
               activeTab === 'school'
-                ? 'bg-primary-600 text-white shadow-md'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                ? 'bg-gradient-to-r from-blue-600 to-teal-600 text-white shadow-lg'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
             }`}
           >
-            🏫 Institution ({schoolSubmissions.length})
+            <span>🏫</span>
+            <span>Institution</span>
+            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+              activeTab === 'school'
+                ? 'bg-white/20'
+                : 'bg-gray-300 dark:bg-slate-600'
+            }`}>
+              {schoolSubmissions.length}
+            </span>
           </button>
           <button 
             onClick={() => setActiveTab('external')}
-            className={`flex-1 px-4 py-3 font-semibold rounded-lg transition-all duration-300 ${
+            className={`flex-1 px-4 py-3 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${
               activeTab === 'external'
-                ? 'bg-primary-600 text-white shadow-md'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                ? 'bg-gradient-to-r from-blue-600 to-teal-600 text-white shadow-lg'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
             }`}
           >
-            📰 External ({externalSubmissions.length})
+            <span>📰</span>
+            <span>External</span>
+            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+              activeTab === 'external'
+                ? 'bg-white/20'
+                : 'bg-gray-300 dark:bg-slate-600'
+            }`}>
+              {externalSubmissions.length}
+            </span>
           </button>
         </div>
 
-        {/* Submissions List */}
-        <div className="space-y-2 max-h-96 overflow-y-auto">
+        {/* Submissions List - Improved Layout */}
+        <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
           {activeSubmissions.length > 0 ? (
             activeSubmissions.map(item => (
-              <div key={item._id} className="bg-white dark:bg-slate-800 rounded-lg p-3 hover:shadow-md transition-shadow">
-                <p className="font-semibold text-gray-900 dark:text-white text-sm line-clamp-2 mb-1">
-                  {item.title}
-                </p>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                  From: <strong>{item.source}</strong>
-                </p>
+              <div 
+                key={item._id} 
+                className="bg-white dark:bg-slate-800 rounded-xl p-4 hover:shadow-lg border-2 border-gray-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 cursor-pointer group"
+                onClick={() => handleCurate(item)}
+              >
+                {/* Type Badge - Top */}
+                <div className="mb-2">
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
+                    item.type === 'submission'
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                      : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
+                  }`}>
+                    {item.type === 'submission' ? '✓ Institution' : '📄 External'}
+                  </span>
+                </div>
+
+                {/* Header with Title */}
+                <div className="mb-3">
+                  <h3 className="font-bold text-gray-900 dark:text-white text-base line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    {item.title}
+                  </h3>
+                </div>
+
+                {/* Source and Date */}
+                <div className="flex flex-wrap items-center gap-3 mb-3 text-xs text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center gap-1">
+                    <span className="font-semibold">From:</span>
+                    <span className="font-bold text-gray-800 dark:text-gray-300">{item.source}</span>
+                  </div>
+                  <span className="text-gray-400">•</span>
+                  <span>{new Date(item.createdAt).toLocaleDateString('en-IN')}</span>
+                </div>
+
+                {/* Summary */}
                 {item.summary && (
-                  <p className="text-xs text-gray-500 dark:text-gray-500 line-clamp-2 mb-2">
-                    {item.summary.substring(0, 80)}...
+                  <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2 mb-3 bg-gray-50 dark:bg-slate-700/50 p-2 rounded border-l-2 border-blue-500">
+                    {item.summary}
                   </p>
                 )}
-                {item.url && (
-                  <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary-600 hover:text-primary-700 mb-2 inline-block">
-                    🔗 View Source
-                  </a>
-                )}
-                <button 
-                  onClick={() => handleCurate(item)}
-                  className="w-full px-3 py-1 bg-primary-600 text-white text-xs font-semibold rounded hover:bg-primary-700 transition-colors"
-                >
-                  Curate
-                </button>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 pt-3 border-t border-gray-200 dark:border-slate-600">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCurate(item);
+                    }}
+                    className="flex-1 px-3 py-2 bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white text-sm font-bold rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+                  >
+                    ✏️ Curate
+                  </button>
+                  {item.url && (
+                    <a 
+                      href={item.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="px-3 py-2 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-300 text-sm font-bold rounded-lg transition-colors"
+                    >
+                      🔗 Source
+                    </a>
+                  )}
+                </div>
               </div>
             ))
           ) : (
-            <p className="text-center text-gray-500 dark:text-gray-500 py-4">No pending articles</p>
+            <div className="text-center py-12">
+              <Inbox size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+              <p className="text-gray-500 dark:text-gray-400 font-semibold">No pending articles</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">All submissions have been reviewed</p>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Editor Panel */}
-      <div className="lg:col-span-2">
+      {/* Editor Panel - 60% */}
+      <div className="lg:col-span-3">
         <div className="flex items-center gap-2 mb-6">
           <FileText size={28} className="text-primary-600" />
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Rich Text Editor</h2>
