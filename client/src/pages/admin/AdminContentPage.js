@@ -3,7 +3,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import RichTextEditor from '../../components/RichTextEditor';
 import CopyButton from '../../components/CopyButton';
-import { FileText, Check, AlertCircle, Inbox } from 'lucide-react';
+import { FileText, Check, AlertCircle, Inbox, Upload } from 'lucide-react';
 
 const AdminContentPage = () => {
   // State for the editor form
@@ -16,6 +16,7 @@ const AdminContentPage = () => {
   const [selectedSubmissionType, setSelectedSubmissionType] = useState(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [activeTab, setActiveTab] = useState('school');
+  const [imageUploading, setImageUploading] = useState(false);
 
   const fetchSubmissions = async () => {
     try {
@@ -44,6 +45,43 @@ const AdminContentPage = () => {
 
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    console.log('File size:', file.size, 'bytes');
+
+    // Validate file type
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/jpg'].includes(file.type)) {
+      toast.error('Only JPEG, PNG, and WebP images are allowed');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image size must be less than 10MB');
+      return;
+    }
+
+    const formDataUpload = new FormData();
+    formDataUpload.append('image', file);
+
+    setImageUploading(true);
+    try {
+      const res = await axios.post('/api/upload', formDataUpload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      setFormData({ ...formData, imageUrl: res.data.imageUrl });
+      toast.success('Image uploaded successfully!');
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      toast.error(err.response?.data?.message || 'Failed to upload image');
+    } finally {
+      setImageUploading(false);
+    }
   };
 
   const handleCurate = (item) => {
@@ -123,15 +161,23 @@ const AdminContentPage = () => {
 
       await axios.post('/api/articles', newArticle);
       
+      // Mark submission as published
       if (selectedSubmissionId && selectedSubmissionType) {
         try {
           if (selectedSubmissionType === 'submission') {
-            await axios.put(`/api/submissions/${selectedSubmissionId}`);
+            await axios.put(`/api/submissions/${selectedSubmissionId}`, { category: category.trim() });
           } else if (selectedSubmissionType === 'raw') {
-            await axios.put(`/api/submissions/raw-articles/${selectedSubmissionId}`);
+            await axios.put(`/api/submissions/raw-articles/${selectedSubmissionId}`, { category: category.trim() });
           }
+          
+          // Immediately remove from submissions list
+          setSubmissions(submissions.filter(s => s._id !== selectedSubmissionId));
+          toast.success('Submission marked as published!');
         } catch (err) {
-          console.error('Error marking submission as used:', err);
+          console.error('Error marking submission as published:', err);
+          toast.error('Article published but failed to update submission status. Please refresh.');
+          // Still refresh to sync with server
+          fetchSubmissions();
         }
       }
       
@@ -141,7 +187,6 @@ const AdminContentPage = () => {
       setContent('');
       setSelectedSubmissionId(null);
       setSelectedSubmissionType(null);
-      fetchSubmissions();
 
     } catch (err) {
       console.error('Error publishing article:', err);
@@ -304,13 +349,13 @@ const AdminContentPage = () => {
       </div>
 
       {/* Editor Panel - 60% */}
-      <div className="lg:col-span-3">
+      <div className="lg:col-span-3 flex flex-col">
         <div className="flex items-center gap-2 mb-6">
           <FileText size={28} className="text-primary-600" />
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Rich Text Editor</h2>
         </div>
 
-        <form onSubmit={onSubmit} className="space-y-6">
+        <form onSubmit={onSubmit} className="space-y-6 flex-1 overflow-y-auto pr-3">
           {/* Title */}
           <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-5 space-y-2">
             <label htmlFor="title" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -356,22 +401,48 @@ const AdminContentPage = () => {
           </div>
 
           {/* Featured Image URL */}
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-5 space-y-2">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-5 space-y-3">
             <label htmlFor="imageUrl" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
               Featured Image URL *
             </label>
-            <div className="flex gap-2">
-              <input 
-                id="imageUrl"
-                type="text" 
-                name="imageUrl" 
-                value={imageUrl} 
-                onChange={onChange}
-                placeholder="https://example.com/image.jpg"
-                required 
-                className="flex-1 px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-600 transition-all"
-              />
-              {imageUrl && <CopyButton text={imageUrl} label="Copy URL" />}
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-2 items-stretch">
+                <input 
+                  id="imageUrl"
+                  type="text" 
+                  name="imageUrl" 
+                  value={imageUrl} 
+                  onChange={onChange}
+                  placeholder="https://example.com/image.jpg"
+                  required 
+                  className="flex-1 px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-600 transition-all"
+                />
+                <label 
+                  htmlFor="imageUpload"
+                  className={`px-5 py-2 bg-green-600 text-white font-bold rounded-lg cursor-pointer flex items-center gap-2 whitespace-nowrap shadow-lg hover:shadow-xl transition-all ${
+                    imageUploading 
+                      ? 'opacity-60 cursor-not-allowed bg-green-700' 
+                      : 'hover:bg-green-700 active:scale-95'
+                  }`}
+                >
+                  <Upload size={20} />
+                  <span className="hidden sm:inline">Upload</span>
+                  <input
+                    id="imageUpload"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/jpg"
+                    onChange={handleImageUpload}
+                    disabled={imageUploading}
+                    className="hidden"
+                  />
+                </label>
+                {imageUrl && <CopyButton text={imageUrl} label="Copy" />}
+              </div>
+              {imageUploading && (
+                <div className="text-sm text-blue-600 dark:text-blue-400 font-semibold animate-pulse">
+                  ⏳ Uploading image...
+                </div>
+              )}
             </div>
             {imageUrl && (
               <div className="mt-3 rounded-lg overflow-hidden shadow-md max-h-48">
@@ -465,7 +536,7 @@ const AdminContentPage = () => {
           {/* Submit Button */}
           <button 
             type="submit" 
-            className="w-full py-4 px-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-lg hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+            className="sticky bottom-0 w-full py-4 px-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-lg rounded-lg hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 mt-8"
             disabled={isPublishing}
           >
             <Check size={20} />

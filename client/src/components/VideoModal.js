@@ -96,7 +96,7 @@ const VideoModal = ({ isOpen, onClose, onSubmit }) => {
             onClick={handleSubmit}
             disabled={isLoading}
           >
-            {isLoading ? '⏳ Adding...' : '✓ Add Video'}
+            {isLoading ? 'Adding...' : 'Add Video'}
           </button>
         </div>
       </div>

@@ -65,15 +65,11 @@ exports.registerUser = async (req, res) => {
 
     await user.save();
 
-    console.log('✅ User created:', user.email);
-    console.log('🔐 Verification OTP generated:', verificationOTP);
-
     // Send verification email with OTP
     try {
       await sendVerificationEmail(user.email, user.username, verificationOTP);
-      console.log('✅ Verification email sent with OTP');
     } catch (emailError) {
-      console.error('⚠️ Email error:', emailError.message);
+      console.error('Email service error - registration');
     }
 
     // Return success WITHOUT OTP (user must verify email first)
@@ -88,7 +84,7 @@ exports.registerUser = async (req, res) => {
       }
     });
   } catch (err) {
-    console.error('Registration error:', err);
+    console.error('Error during registration');
     res.status(500).json({ msg: 'Server error during registration' });
   }
 };
@@ -139,7 +135,7 @@ exports.loginUser = async (req, res) => {
       }
     });
   } catch (err) {
-    console.error('Login error:', err);
+    console.error('Error during login');
     res.status(500).json({ msg: 'Server error during login' });
   }
 };
@@ -152,40 +148,19 @@ exports.verifyEmail = async (req, res) => {
   try {
     const { token } = req.params;
 
-    console.log('\n=== EMAIL VERIFICATION REQUEST ===');
-    console.log('🔍 Token received from URL:', token);
-    console.log('⏱️  Token length:', token?.length);
-
     if (!token) {
-      console.log('❌ No token provided');
       return res.status(400).json({ msg: 'Invalid or expired verification token' });
     }
 
     // Find user with this verification token
-    console.log('🔎 Searching database for user with this token...');
     const user = await User.findOne({ verificationToken: token });
 
-    if (user) {
-      console.log('✅ User found:', user.email);
-      console.log('   emailVerified:', user.emailVerified);
-      console.log('   storedToken:', user.verificationToken);
-      console.log('   tokensMatch:', user.verificationToken === token);
-    } else {
-      console.log('❌ User NOT found with this token');
-      
-      // Debug: show what tokens are in DB
-      const allUsers = await User.find({ verificationToken: { $exists: true, $ne: null } });
-      console.log('📋 Users with verification tokens in DB:', allUsers.length);
-      allUsers.forEach(u => {
-        console.log(`   - ${u.email}: ${u.verificationToken?.substring(0, 20)}...`);
-      });
-      
+    if (!user) {
       return res.status(400).json({ msg: 'Invalid or expired verification token' });
     }
 
     // Check if already verified
     if (user.emailVerified) {
-      console.log('⚠️  User already verified');
       return res.json({ msg: 'Email already verified! You can login now.' });
     }
 
@@ -194,16 +169,13 @@ exports.verifyEmail = async (req, res) => {
     user.verificationToken = undefined;
     await user.save();
 
-    console.log('✅ User verified successfully:', user.email);
-
     // Send welcome email
     try {
       await sendWelcomeEmail(user.email, user.username);
     } catch (emailError) {
-      console.error('⚠️  Error sending welcome email:', emailError.message);
+      console.error('Email service error - welcome');
     }
 
-    console.log('=== VERIFICATION COMPLETE ===\n');
     res.json({ msg: 'Email verified successfully! You can now login.' });
   } catch (err) {
     console.error('❌ Email verification error:', err);

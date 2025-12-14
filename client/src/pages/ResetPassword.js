@@ -126,7 +126,7 @@ const ResetPassword = () => {
               disabled={loading}
               className="w-full py-3 px-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-bold rounded-lg hover:from-primary-700 hover:to-primary-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
             >
-              {loading ? '⏳ Resetting...' : '🔐 Reset Password'}
+              {loading ? 'Resetting...' : 'Reset Password'}
             </button>
           </form>
 

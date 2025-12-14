@@ -53,7 +53,7 @@ const ConfirmModal = ({ isOpen, title, message, onConfirm, onCancel, isDangerous
             onClick={onConfirm}
             disabled={isLoading}
           >
-            {isLoading ? '⏳ Processing...' : isDangerous ? '🗑️ Delete' : '✓ Confirm'}
+            {isLoading ? 'Processing...' : isDangerous ? 'Delete' : 'Confirm'}
           </button>
         </div>
       </div>

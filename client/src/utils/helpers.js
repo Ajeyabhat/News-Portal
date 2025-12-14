@@ -60,7 +60,9 @@ export const formatRelativeTime = (date) => {
 
 /**
  * Calculate reading time based on content length
- * Assumes average reading speed of 200 words per minute
+ * Handles both English and Kannada text
+ * Assumes average reading speed of 200 words per minute for English
+ * and character-based calculation for Kannada (1 character ≈ 0.5 words)
  * @param {string} htmlContent - The HTML content to analyze
  * @returns {string} Formatted reading time (e.g., "5 mins read")
  */
@@ -68,11 +70,23 @@ export const calculateReadingTime = (htmlContent) => {
   if (!htmlContent) return '< 1 min read';
 
   // Strip HTML tags
-  const textContent = htmlContent.replace(/<[^>]*>/g, '');
+  const textContent = htmlContent.replace(/<[^>]*>/g, '').trim();
   
-  // Count words (split by whitespace)
-  const words = textContent.trim().split(/\s+/).filter(word => word.length > 0);
-  const wordCount = words.length;
+  // Count words by splitting on whitespace
+  const words = textContent.split(/\s+/).filter(word => word.length > 0);
+  let wordCount = words.length;
+
+  // For Kannada and other scripts, also count characters
+  // Kannada characters: roughly 3 characters = 1 word equivalent
+  const kannada = /[\u0C80-\u0CFF]/g;
+  const kannadaChars = textContent.match(kannada) || [];
+  
+  if (kannadaChars.length > 0) {
+    // If significant Kannada content, use character count
+    const kannadaWordEquivalent = Math.ceil(kannadaChars.length / 3);
+    // Combine English and Kannada word counts
+    wordCount = Math.max(wordCount, kannadaWordEquivalent);
+  }
 
   // Calculate reading time (200 words per minute)
   const minutes = Math.ceil(wordCount / 200);
@@ -111,4 +125,31 @@ export const getAuthorName = (article) => {
 
   // Fallback to source field or default
   return article.source || 'Admin';
+};
+
+/**
+ * Resolve image URL to full URL if needed
+ * @param {string} imageUrl - The image URL from the article
+ * @returns {string} Full image URL
+ */
+export const getImageUrl = (imageUrl) => {
+  if (!imageUrl) return '';
+  
+  // If already a full URL (http/https), return as is
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+    return imageUrl;
+  }
+  
+  // If it's a data URL (base64 encoded image), return as is
+  if (imageUrl.startsWith('data:')) {
+    return imageUrl;
+  }
+  
+  // If starts with /, it's a relative path - return as is (browser will handle it)
+  if (imageUrl.startsWith('/')) {
+    return imageUrl;
+  }
+  
+  // Otherwise, prepend /
+  return '/' + imageUrl;
 };

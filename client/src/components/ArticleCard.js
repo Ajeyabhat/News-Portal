@@ -1,20 +1,20 @@
 import React from 'react';
 import { User, Clock, Calendar } from 'lucide-react';
-import { formatRelativeTime, calculateReadingTime, getAuthorName } from '../utils/helpers';
+import { formatRelativeTime, calculateReadingTime, getAuthorName, getImageUrl } from '../utils/helpers';
 
-const ArticleCard = ({ article }) => {
+const ArticleCard = React.memo(({ article }) => {
   const authorName = getAuthorName(article);
   const relativeTime = formatRelativeTime(article.createdAt);
   const readingTime = calculateReadingTime(article.content);
 
   return (
-    <div className="group h-full bg-white dark:bg-slate-800 rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden flex flex-col">
+    <div className="group h-full bg-white dark:bg-slate-800 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] overflow-hidden flex flex-col border border-gray-200 dark:border-gray-700">
       {/* Image Container */}
       <div className="relative h-48 overflow-hidden bg-gray-200 dark:bg-gray-700">
         <img 
-          src={article.imageUrl} 
+          src={getImageUrl(article.imageUrl)} 
           alt={article.title} 
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
           loading="lazy"
           decoding="async"
           onError={(e) => {
@@ -32,7 +32,7 @@ const ArticleCard = ({ article }) => {
       {/* Content */}
       <div className="p-5 flex-1 flex flex-col">
         {/* Title */}
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-300">
           {article.title}
         </h3>
 
@@ -63,6 +63,8 @@ const ArticleCard = ({ article }) => {
       </div>
     </div>
   );
-};
+});
+
+ArticleCard.displayName = 'ArticleCard';
 
 export default ArticleCard;

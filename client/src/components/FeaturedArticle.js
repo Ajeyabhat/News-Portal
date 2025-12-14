@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { User, Clock, Calendar, ArrowRight } from 'lucide-react';
-import { formatRelativeTime, calculateReadingTime, getAuthorName } from '../utils/helpers';
+import { formatRelativeTime, calculateReadingTime, getAuthorName, getImageUrl } from '../utils/helpers';
 
-const FeaturedArticle = ({ article }) => {
+const FeaturedArticle = React.memo(({ article }) => {
   if (!article) return null;
 
   const authorName = getAuthorName(article);
@@ -11,11 +11,11 @@ const FeaturedArticle = ({ article }) => {
   const readingTime = calculateReadingTime(article.content);
 
   return (
-    <Link to={`/article/${article._id}`} className="block group mb-8">
-      <div className="relative h-96 rounded-2xl overflow-hidden shadow-2xl hover:shadow-2xl transition-all duration-500">
+    <Link to={`/article/${article._id}`} className="block group">
+      <div className="relative h-80 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-500">
         {/* Background Image */}
         <img 
-          src={article.imageUrl} 
+          src={getImageUrl(article.imageUrl)} 
           alt={article.title}
           loading="lazy"
           decoding="async"
@@ -26,60 +26,54 @@ const FeaturedArticle = ({ article }) => {
         />
 
         {/* Dark Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent"></div>
 
         {/* Content Overlay */}
         <div className="absolute inset-0 flex flex-col justify-between p-6 sm:p-8">
           {/* Top Badge */}
-          <div className="flex justify-between items-start">
-            <span className="px-4 py-2 bg-primary-600 text-white text-sm font-bold rounded-full shadow-lg">
+          <div className="flex gap-3">
+            <span className="px-3 py-1 bg-primary-600 text-white text-xs font-bold rounded-full">
               Featured
             </span>
-            <span className="px-4 py-2 bg-accent-600 text-white text-sm font-bold rounded-full shadow-lg">
+            <span className="px-3 py-1 bg-accent-600 text-white text-xs font-bold rounded-full">
               {article.category}
             </span>
           </div>
 
           {/* Bottom Content */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Title */}
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight group-hover:text-primary-200 transition-colors">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight line-clamp-2">
               {article.title}
             </h2>
 
             {/* Summary */}
-            <p className="text-lg text-gray-50 line-clamp-2">
+            <p className="text-sm text-gray-100 line-clamp-2">
               {article.summary}
             </p>
 
             {/* Meta Info */}
-            <div className="flex flex-wrap gap-4 text-sm text-gray-200">
-              <span className="flex items-center gap-2">
-                <User size={16} />
+            <div className="flex flex-wrap gap-4 text-xs text-gray-200">
+              <span className="flex items-center gap-1">
+                <User size={14} />
                 {authorName}
               </span>
-              <span className="flex items-center gap-2">
-                <Calendar size={16} />
+              <span className="flex items-center gap-1">
+                <Calendar size={14} />
                 {relativeTime}
               </span>
-              <span className="flex items-center gap-2">
-                <Clock size={16} />
+              <span className="flex items-center gap-1">
+                <Clock size={14} />
                 {readingTime}
               </span>
-            </div>
-
-            {/* Read More Button */}
-            <div className="pt-4">
-              <div className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white font-bold rounded-lg group-hover:bg-primary-700 group-hover:gap-3 transition-all duration-300 shadow-lg group-hover:shadow-xl">
-                Read More
-                <ArrowRight size={20} />
-              </div>
             </div>
           </div>
         </div>
       </div>
     </Link>
   );
-};
+});
+
+FeaturedArticle.displayName = 'FeaturedArticle';
 
 export default FeaturedArticle;

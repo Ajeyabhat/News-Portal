@@ -78,7 +78,6 @@ exports.createSubmission = async (req, res) => {
     });
 
     await newSubmission.save();
-    console.log('Submission saved:', newSubmission._id);
     
     res.json({ 
       code: 'SUCCESS',
@@ -151,7 +150,6 @@ exports.updateSubmissionStatus = async (req, res) => {
     });
 
     await newArticle.save();
-    console.log('Article created from submission:', newArticle._id);
 
     // Mark submission as published
     submission.status = 'published';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Linkedin, Newspaper } from 'lucide-react';
 
 const Footer = () => {
   const socialLinks = [
@@ -18,10 +18,13 @@ const Footer = () => {
           
           {/* Brand Section */}
           <div className="space-y-4">
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent">
-              📰 News Portal
-            </h3>
-            <p className="text-gray-400 leading-relaxed">
+            <div className="flex items-center gap-2">
+              <Newspaper size={24} className="text-primary-400" />
+              <h3 className="text-xl font-bold text-gray-100">
+                News Portal
+              </h3>
+            </div>
+            <p className="text-gray-400 text-sm leading-relaxed">
               Your daily source for educational updates. Stay informed, stay ahead.
             </p>
             <div className="flex gap-4">
@@ -29,7 +32,7 @@ const Footer = () => {
                 <button
                   type="button"
                   key={name}
-                  className="p-2 rounded-full bg-gray-800 text-gray-300 transition-colors cursor-not-allowed"
+                  className="p-2 rounded-full bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-gray-100 transition-colors"
                   title={`${name} page coming soon`}
                   aria-label={`${name} page coming soon`}
                 >
@@ -54,7 +57,7 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-bold mb-6 text-white">Newsletter</h4>
             <p className="text-gray-400 text-sm">
-              📧 Stay updated with latest news and updates.
+              Stay updated with latest news and updates.
             </p>
             <p className="text-gray-500 text-xs mt-4">Coming soon...</p>
           </div>

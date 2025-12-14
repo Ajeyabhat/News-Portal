@@ -1,97 +1,102 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from './components/ErrorBoundary';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
-import HomePage from './pages/HomePage';
-import Register from './pages/Register';
-import RegisterInstitution from './pages/RegisterInstitution';
-import Login from './pages/Login';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import VerifyEmail from './pages/VerifyEmail'; // Email verification page
-import ArticlePage from './pages/ArticlePage';
-import BookmarksPage from './pages/BookmarksPage';
-import SearchResultsPage from './pages/SearchResultsPage';
-import EditArticlePage from './pages/EditArticlePage';
-import InstitutionDashboard from './pages/InstitutionDashboard';
-import UserManagement from './pages/admin/AdminUserManagement';
-import ContentManager from './pages/admin/AdminContentPage';
-import AdminLayout from './components/admin/AdminLayout';
-import EventManager from './pages/admin/AdminEventManager';
-import AboutPage from './pages/AboutPage';
-import ContactPage from './pages/ContactPage';
-import PrivacyPage from './pages/PrivacyPage';
-import TermsPage from './pages/TermsPage';
-import NotFound from './pages/NotFound';
+import Skeleton from './components/Skeleton';
+
+// Lazy loaded pages for code splitting (performance optimization)
+const HomePage = lazy(() => import('./pages/HomePage'));
+const Register = lazy(() => import('./pages/Register'));
+const RegisterInstitution = lazy(() => import('./pages/RegisterInstitution'));
+const Login = lazy(() => import('./pages/Login'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
+const ArticlePage = lazy(() => import('./pages/ArticlePage'));
+const BookmarksPage = lazy(() => import('./pages/BookmarksPage'));
+const SearchResultsPage = lazy(() => import('./pages/SearchResultsPage'));
+const EditArticlePage = lazy(() => import('./pages/EditArticlePage'));
+const InstitutionDashboard = lazy(() => import('./pages/InstitutionDashboard'));
+const UserManagement = lazy(() => import('./pages/admin/AdminUserManagement'));
+const ContentManager = lazy(() => import('./pages/admin/AdminContentPage'));
+const AdminLayout = lazy(() => import('./components/admin/AdminLayout'));
+const EventManager = lazy(() => import('./pages/admin/AdminEventManager'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
+const TermsPage = lazy(() => import('./pages/TermsPage'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 
 function App() {
   return (
     <ErrorBoundary>
-      <Routes>
-        {/* Admin Routes - No Main Layout */}
-        <Route 
-          path="/admin" 
-          element={
-            <ProtectedRoute adminOnly={true}>
-              <AdminLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<Navigate to="content" replace />} />
-          <Route path="dashboard" element={<Navigate to="content" replace />} />
-          <Route path="users" element={<UserManagement />} />
-          <Route path="content" element={<ContentManager />} />
-          <Route path="events" element={<EventManager />} />
-        </Route>
-
-        {/* All Other Routes - With Main Layout */}
-        <Route element={<Layout />}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/register-institution" element={<RegisterInstitution />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/article/:id" element={<ArticlePage />} />
-          <Route path="/search" element={<SearchResultsPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/terms" element={<TermsPage />} />
-          
+      <Suspense fallback={<Skeleton />}>
+        <Routes>
+          {/* Admin Routes - No Main Layout */}
           <Route 
-            path="/bookmarks" 
-            element={<ProtectedRoute><BookmarksPage /></ProtectedRoute>} 
-          />
-
-          {/* Institution Dashboard */}
-          <Route 
-            path="/institution" 
-            element={
-              <ProtectedRoute institutionOnly={true}>
-                <InstitutionDashboard />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Edit Article Route */}
-          <Route 
-            path="/edit-article/:id" 
+            path="/admin" 
             element={
               <ProtectedRoute adminOnly={true}>
-                <EditArticlePage />
+                <AdminLayout />
               </ProtectedRoute>
-            } 
-          />
+            }
+          >
+            <Route index element={<Navigate to="content" replace />} />
+            <Route path="dashboard" element={<Navigate to="content" replace />} />
+            <Route path="users" element={<UserManagement />} />
+            <Route path="content" element={<ContentManager />} />
+            <Route path="events" element={<EventManager />} />
+          </Route>
 
-          {/* 404 Not Found - Must be last */}
-          <Route path="*" element={<NotFound />} />
-        </Route>
-      </Routes>
+          {/* All Other Routes - With Main Layout */}
+          <Route element={<Layout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/register-institution" element={<RegisterInstitution />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/article/:id" element={<ArticlePage />} />
+            <Route path="/search" element={<SearchResultsPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            
+            <Route 
+              path="/bookmarks" 
+              element={<ProtectedRoute><BookmarksPage /></ProtectedRoute>} 
+            />
+
+            {/* Institution Dashboard */}
+            <Route 
+              path="/institution" 
+              element={
+                <ProtectedRoute institutionOnly={true}>
+                  <InstitutionDashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Edit Article Route */}
+            <Route 
+              path="/edit-article/:id" 
+              element={
+                <ProtectedRoute adminOnly={true}>
+                  <EditArticlePage />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* 404 Not Found - Must be last */}
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
+      </Suspense>
       <Toaster
         position="top-center"
         reverseOrder={false}

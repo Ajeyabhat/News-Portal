@@ -3,7 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import RichTextEditor from '../components/RichTextEditor';
-import { Loader2, Edit2, Save } from 'lucide-react';
+import { calculateReadingTime } from '../utils/helpers';
+import CopyButton from '../components/CopyButton';
+import { Loader2, Edit2, Save, Upload } from 'lucide-react';
 
 const EditArticlePage = () => {
   const { id } = useParams();
@@ -19,6 +21,7 @@ const EditArticlePage = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -52,6 +55,43 @@ const EditArticlePage = () => {
 
   const onContentChange = (newContent) => {
     setFormData({ ...formData, content: newContent });
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    console.log('File size:', file.size, 'bytes');
+
+    // Validate file type
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/jpg'].includes(file.type)) {
+      toast.error('Only JPEG, PNG, and WebP images are allowed');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image size must be less than 10MB');
+      return;
+    }
+
+    const formDataUpload = new FormData();
+    formDataUpload.append('image', file);
+
+    setImageUploading(true);
+    try {
+      const res = await axios.post('/api/upload', formDataUpload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      setFormData({ ...formData, imageUrl: res.data.imageUrl });
+      toast.success('Image uploaded successfully!');
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      toast.error(err.response?.data?.message || 'Failed to upload image');
+    } finally {
+      setImageUploading(false);
+    }
   };
 
   const onSubmit = async (e) => {
@@ -184,16 +224,45 @@ const EditArticlePage = () => {
             <label htmlFor="imageUrl" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
               Featured Image URL *
             </label>
-            <input 
-              id="imageUrl"
-              type="text" 
-              name="imageUrl" 
-              value={imageUrl} 
-              onChange={onChange}
-              placeholder="https://example.com/image.jpg"
-              required
-              className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-primary-600 transition-all duration-300"
-            />
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-2 items-stretch">
+                <input 
+                  id="imageUrl"
+                  type="text" 
+                  name="imageUrl" 
+                  value={imageUrl} 
+                  onChange={onChange}
+                  placeholder="https://example.com/image.jpg"
+                  required
+                  className="flex-1 px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-primary-600 transition-all duration-300"
+                />
+                <label 
+                  htmlFor="imageUpload"
+                  className={`px-5 py-3 bg-green-600 text-white font-bold rounded-lg cursor-pointer flex items-center gap-2 whitespace-nowrap shadow-lg hover:shadow-xl transition-all ${
+                    imageUploading 
+                      ? 'opacity-60 cursor-not-allowed bg-green-700' 
+                      : 'hover:bg-green-700 active:scale-95'
+                  }`}
+                >
+                  <Upload size={20} />
+                  <span className="hidden sm:inline">Upload</span>
+                  <input
+                    id="imageUpload"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/jpg"
+                    onChange={handleImageUpload}
+                    disabled={imageUploading}
+                    className="hidden"
+                  />
+                </label>
+                {imageUrl && <CopyButton text={imageUrl} label="Copy" />}
+              </div>
+              {imageUploading && (
+                <div className="text-sm text-blue-600 dark:text-blue-400 font-semibold animate-pulse">
+                  ⏳ Uploading image...
+                </div>
+              )}
+            </div>
             {imageUrl && (
               <div className="mt-4 rounded-lg overflow-hidden shadow-md max-h-64">
                 <img src={imageUrl} alt="Preview" className="w-full h-64 object-cover" loading="lazy" decoding="async" onError={(e) => e.target.style.display = 'none'} />
@@ -249,9 +318,14 @@ const EditArticlePage = () => {
 
           {/* Rich Content Editor */}
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-md p-6 space-y-3">
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-              Full Article Content *
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                Full Article Content *
+              </label>
+              <div className="text-xs font-semibold bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 text-blue-700 dark:text-blue-300 px-3 py-1.5 rounded-full">
+                📖 {calculateReadingTime(content)}
+              </div>
+            </div>
             <p className="text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
               💡 Use the toolbar to format text, insert images, and embed videos
             </p>

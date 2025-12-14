@@ -30,7 +30,7 @@ exports.getAllArticles = async (req, res) => {
     const [articles, total] = await Promise.all([
       Article.find(filter)
         .populate('author', 'username institutionName name')
-        .select('title summary imageUrl videoUrl source category contentLanguage createdAt author viewCount')
+        .select('title summary content imageUrl videoUrl source category contentLanguage createdAt author viewCount')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
@@ -61,7 +61,7 @@ exports.getTrendingArticles = async (req, res) => {
     const language = String(req.query.language || 'en').toLowerCase();
     const trendingArticles = await Article.find(buildLanguageFilter(language))
       .populate('author', 'username institutionName name')
-      .select('title contentLanguage author')
+      .select('title content contentLanguage author')
       .sort({ viewCount: -1 })
       .limit(5);
       
@@ -189,7 +189,6 @@ exports.createArticle = async (req, res) => {
     });
 
     await newArticle.save();
-    console.log('Article created:', newArticle._id);
     
     res.json({
       code: 'SUCCESS',
