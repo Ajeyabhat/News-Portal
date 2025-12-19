@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { Bookmark, User, Clock, Calendar, Folder, Edit2, Trash2, AlertCircle, RotateCcw, Home } from 'lucide-react';
+import { User, Clock, Calendar, Folder, Edit2, Trash2, AlertCircle, RotateCcw, Home } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { formatRelativeTime, calculateReadingTime, getAuthorName } from '../utils/helpers';
 import ConfirmModal from '../components/ConfirmModal';
@@ -15,38 +15,8 @@ const ArticlePage = () => {
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  useEffect(() => {
-    if (user && article) {
-      setIsBookmarked(user.bookmarks.includes(article._id));
-    }
-  }, [user, article]);
-
-  const handleBookmark = async () => {
-    if (!isAuthenticated) {
-      toast.error('Please log in to bookmark articles.');
-      return;
-    }
-
-    try {
-      if (isBookmarked) {
-        await axios.delete(`/api/bookmarks/${article._id}`);
-        setIsBookmarked(false);
-        toast.success('Bookmark removed.');
-      } else {
-        await axios.post(`/api/bookmarks`, { articleId: article._id });
-        setIsBookmarked(true);
-        toast.success('Article bookmarked!');
-      }
-      await loadUser();
-    } catch (err) {
-      console.error(err);
-      toast.error('Error updating bookmark.');
-    }
-  };
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -162,27 +132,16 @@ const ArticlePage = () => {
 
         {/* Article Content */}
         <article className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden">
-          {/* Header with Title and Bookmark */}
+          {/* Header with Title */}
           <div className="p-8 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-start justify-between gap-4">
-              <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white leading-tight flex-1">
-                {article.title}
-              </h1>
-              {isAuthenticated && (
-                <button 
-                  onClick={handleBookmark}
-                  className="p-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-primary-100 dark:hover:bg-primary-900 hover:text-primary-600 transition-colors flex-shrink-0"
-                  title={isBookmarked ? 'Remove bookmark' : 'Save article'}
-                >
-                  <Bookmark size={24} fill={isBookmarked ? 'currentColor' : 'none'} />
-                </button>
-              )}
-            </div>
+            <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white leading-tight">
+              {article.title}
+            </h1>
           </div>
 
           {/* Article Metadata */}
           <div className="px-8 py-6 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex flex-wrap gap-4 text-sm md:text-base text-gray-600 dark:text-gray-400">
+            <div className="flex flex-wrap gap-4 text-sm md:text-base text-gray-600 dark:text-gray-400 font-medium">
               <div className="flex items-center gap-2">
                 <User size={18} className="text-primary-600" />
                 <span><strong>{authorName}</strong></span>
@@ -210,8 +169,8 @@ const ArticlePage = () => {
           {/* Article Summary */}
           {article.summary && (
             <div className="px-8 py-6 bg-primary-50 dark:bg-primary-900/20 border-b border-gray-200 dark:border-gray-700">
-              <p className="text-lg text-primary-900 dark:text-primary-100 italic leading-relaxed">
-                {article.summary}
+              <p className="text-lg text-primary-900 dark:text-primary-100 italic leading-relaxed font-medium">
+                "{article.summary}"
               </p>
             </div>
           )}
@@ -236,7 +195,17 @@ const ArticlePage = () => {
           {article.videoUrl && (
             <div className="px-8 py-6 border-b border-gray-200 dark:border-gray-700">
               <div className="rounded-lg overflow-hidden shadow-md aspect-video bg-black">
-                {article.videoUrl.includes('youtube.com') || article.videoUrl.includes('youtu.be') ? (
+                {article.videoUrl.includes('drive.google.com') ? (
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={article.videoUrl.includes('/preview') ? article.videoUrl : article.videoUrl.replace('/view', '/preview')}
+                    title="Article Video"
+                    allow="autoplay"
+                    allowFullScreen
+                    className="rounded-lg"
+                  />
+                ) : article.videoUrl.includes('youtube.com') || article.videoUrl.includes('youtu.be') ? (
                   <iframe
                     width="100%"
                     height="100%"
@@ -246,7 +215,7 @@ const ArticlePage = () => {
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                     className="rounded-lg"
-                  ></iframe>
+                  />
                 ) : (
                   <video width="100%" height="100%" controls className="rounded-lg w-full">
                     <source src={article.videoUrl} type="video/mp4" />

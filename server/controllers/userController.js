@@ -135,8 +135,9 @@ exports.loginUser = async (req, res) => {
       }
     });
   } catch (err) {
-    console.error('Error during login');
-    res.status(500).json({ msg: 'Server error during login' });
+    console.error('Error during login:', err.message);
+    console.error('Full error:', err);
+    res.status(500).json({ msg: 'Server error during login', error: err.message });
   }
 };
 

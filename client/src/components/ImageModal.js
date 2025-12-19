@@ -86,9 +86,12 @@ const ImageModal = ({ isOpen, onClose, onSubmit }) => {
 
       const data = await response.json();
       
-      // Build full URL
-      const baseUrl = axios.defaults.baseURL || window.location.origin;
-      const fullUrl = `${baseUrl}${data.imageUrl}`;
+      // Use ImgBB URL directly (it returns full URL now)
+      const imageUrl = data.imageUrl || data.displayUrl;
+      
+      if (!imageUrl) {
+        throw new Error('No image URL returned from server');
+      }
       
       // Show compression stats
       toast.success(
@@ -96,7 +99,7 @@ const ImageModal = ({ isOpen, onClose, onSubmit }) => {
         { duration: 4 }
       );
 
-      onSubmit(fullUrl);
+      onSubmit(imageUrl);
       setActiveTab('url');
       setImageUrl('');
       setError('');

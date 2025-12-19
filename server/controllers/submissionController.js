@@ -193,6 +193,8 @@ exports.updateRawArticle = async (req, res) => {
     return res.status(403).json({ msg: 'Access denied. Admins only.' });
   }
   
+  const { category, status } = req.body;
+  
   try {
     // Validate ObjectId format
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -204,7 +206,10 @@ exports.updateRawArticle = async (req, res) => {
       return res.status(404).json({ msg: 'Raw article not found' });
     }
     
-    rawArticle.status = 'published';
+    // Only update provided fields
+    if (category) rawArticle.category = category;
+    if (status) rawArticle.status = status;
+    
     await rawArticle.save();
     res.json(rawArticle);
   } catch (err) {

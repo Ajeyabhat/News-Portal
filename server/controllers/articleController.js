@@ -6,6 +6,7 @@
 const mongoose = require('mongoose');
 const sanitizeHtml = require('sanitize-html');
 const Article = require('../models/Article');
+const WordSubmission = require('../models/WordSubmission');
 const { buildLanguageFilter, resolveLanguage } = require('../utils/languageHelpers');
 
 /**
@@ -113,7 +114,7 @@ exports.createArticle = async (req, res) => {
   }
   
   try {
-    const { title, summary, content, imageUrl, source, category, language } = req.body;
+    const { title, summary, content, imageUrl, source, category, language, wordSubmissionId } = req.body;
 
     // Validation
     if (!title || !title.trim()) {
@@ -186,9 +187,32 @@ exports.createArticle = async (req, res) => {
       source: source ? source.trim() : '',
       category: category.trim(),
       contentLanguage: resolveLanguage(language),
+      wordSubmissionId: wordSubmissionId || null // Link to Word submission if provided
     });
 
     await newArticle.save();
+
+    // If article was created from a Word submission, update Word submission status to 'published' and delete fileBuffer
+    if (wordSubmissionId) {
+      try {
+        console.log(`📄 Updating Word submission ${wordSubmissionId} to published status...`);
+        const updatedWordSubmission = await WordSubmission.findByIdAndUpdate(
+          wordSubmissionId,
+          { 
+            status: 'published',
+            fileBuffer: null, // Delete file buffer to save storage space
+            fileName: null    // Also delete filename since file is gone
+          },
+          { new: true }
+        );
+        console.log(`✅ Word submission updated and file buffer deleted to save storage`);
+      } catch (wordErr) {
+        console.error('❌ Error updating Word submission status:', wordErr);
+        // Don't fail the article creation if Word update fails
+      }
+    } else {
+      console.log('ℹ️ No wordSubmissionId provided, skipping Word submission update');
+    }
     
     res.json({
       code: 'SUCCESS',

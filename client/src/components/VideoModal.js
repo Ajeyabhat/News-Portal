@@ -10,7 +10,13 @@ const VideoModal = ({ isOpen, onClose, onSubmit }) => {
     e.preventDefault();
     e.stopPropagation();
     if (!url.trim()) {
-      toast.error('Please enter a YouTube URL');
+      toast.error('Please enter a Google Drive video link');
+      return;
+    }
+    
+    // Validate Google Drive URL
+    if (!url.includes('drive.google.com/file/d/')) {
+      toast.error('Please provide a valid Google Drive link');
       return;
     }
     setIsLoading(true);
@@ -42,7 +48,7 @@ const VideoModal = ({ isOpen, onClose, onSubmit }) => {
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-2">
             <Film size={24} className="text-primary-600" />
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add YouTube Video</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add Google Drive Video</h2>
           </div>
           <button 
             onClick={handleClose}
@@ -56,19 +62,21 @@ const VideoModal = ({ isOpen, onClose, onSubmit }) => {
         {/* Body */}
         <div className="p-6 space-y-4">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Paste your YouTube URL below. We support these formats:
+            Upload video to your Google Drive, make it shareable, and paste the link below:
           </p>
-          <ul className="text-xs text-gray-500 dark:text-gray-500 space-y-1 bg-gray-50 dark:bg-slate-900 p-3 rounded-lg">
-            <li>• https://www.youtube.com/watch?v=dQw4w9WgXcQ</li>
-            <li>• https://youtu.be/dQw4w9WgXcQ</li>
-            <li>• https://www.youtube.com/embed/dQw4w9WgXcQ</li>
-          </ul>
+          <ol className="text-xs text-gray-600 dark:text-gray-400 space-y-2 bg-gray-50 dark:bg-slate-900 p-3 rounded-lg list-decimal list-inside">
+            <li>Upload video to Google Drive</li>
+            <li>Right-click → Share</li>
+            <li>Copy the shareable link</li>
+            <li>Paste it below</li>
+          </ol>
+          <p className="text-xs text-gray-500 dark:text-gray-500 bg-blue-50 dark:bg-blue-900/30 p-2 rounded">Example: https://drive.google.com/file/d/1ABC...xyz/view</p>
 
           <input
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://www.youtube.com/watch?v=..."
+            placeholder="https://drive.google.com/file/d/..."
             disabled={isLoading}
             autoFocus
             onKeyPress={(e) => {

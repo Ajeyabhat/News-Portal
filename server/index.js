@@ -7,17 +7,50 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ==================== MIDDLEWARE ====================
-app.use(cors());
-app.use(express.json());
+// ==================== CORS CONFIGURATION ====================
+// Environment-based CORS whitelist
+let allowedOrigins;
 
-// Serve uploaded images as static files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+if (process.env.NODE_ENV === 'production') {
+  // Production origins (update these when you get a domain)
+  allowedOrigins = [
+    'https://your-domain.com',           // Replace with your domain
+    'https://www.your-domain.com',       // With www
+    'https://your-frontend.vercel.app'   // If using Vercel frontend
+  ];
+} else {
+  // Development origins
+  allowedOrigins = [
+    'http://localhost:3000',   // React frontend
+    'http://localhost:5000',   // Express backend
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:5000'
+  ];
+}
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or Postman)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS not allowed for origin: ${origin}`));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+
+// ==================== MIDDLEWARE ====================
+app.use(express.json());
 
 // ==================== DATABASE CONNECTION ====================
 mongoose.connect(process.env.MONGO_URI)
@@ -38,16 +71,14 @@ app.get('/', (req, res) => {
 // Import and register route modules
 app.use('/api/articles', require('./routes/articleRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
-app.use('/api/bookmarks', require('./routes/bookmarkRoutes'));
 app.use('/api/search', require('./routes/searchRoutes'));
 app.use('/api/submissions', require('./routes/submissionRoutes'));
 app.use('/api/events', require('./routes/eventRoutes'));
 app.use('/api', require('./routes/uploadRoutes'));
 
 // Legacy routes for backward compatibility
-const { toggleBookmark, getAuthUser } = require('./controllers/userController');
+const { getAuthUser } = require('./controllers/userController');
 const auth = require('./middleware/auth');
-app.post('/api/articles/:id/bookmark', auth, toggleBookmark);
 app.get('/api/auth', auth, getAuthUser); // Legacy auth route
 
 // ==================== ERROR HANDLING ====================

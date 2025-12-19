@@ -15,7 +15,6 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 const ArticlePage = lazy(() => import('./pages/ArticlePage'));
-const BookmarksPage = lazy(() => import('./pages/BookmarksPage'));
 const SearchResultsPage = lazy(() => import('./pages/SearchResultsPage'));
 const EditArticlePage = lazy(() => import('./pages/EditArticlePage'));
 const InstitutionDashboard = lazy(() => import('./pages/InstitutionDashboard'));
@@ -66,11 +65,6 @@ function App() {
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/terms" element={<TermsPage />} />
-            
-            <Route 
-              path="/bookmarks" 
-              element={<ProtectedRoute><BookmarksPage /></ProtectedRoute>} 
-            />
 
             {/* Institution Dashboard */}
             <Route 

@@ -23,10 +23,6 @@ const UserSchema = new mongoose.Schema({
     enum: ['Reader', 'Admin', 'Institution'], 
     default: 'Reader' 
   },
-  bookmarks: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Article'
-  }],
   emailVerified: {
     type: Boolean,
     default: false

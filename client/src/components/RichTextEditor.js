@@ -1,9 +1,10 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useContext, useEffect } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import VideoModal from './VideoModal';
 import ImageModal from './ImageModal';
 import { Image as ImageIcon, Film } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 // Add custom Tailwind styles for Quill editor
 const quillStyles = `
@@ -13,24 +14,45 @@ const quillStyles = `
   }
 
   .ql-editor {
-    @apply min-h-64 p-4 text-gray-900 dark:text-gray-100;
+    @apply min-h-64 p-4 text-gray-900;
     background-color: #fff;
   }
 
-  .dark .ql-editor {
-    @apply bg-gray-700 text-gray-100;
+  .ql-editor.dark-mode {
+    background-color: #374151 !important;
+    color: #f3f4f6 !important;
+  }
+
+  .ql-editor.dark-mode p,
+  .ql-editor.dark-mode div,
+  .ql-editor.dark-mode span {
+    color: #f3f4f6 !important;
+  }
+
+  .ql-editor.dark-mode h1,
+  .ql-editor.dark-mode h2,
+  .ql-editor.dark-mode h3,
+  .ql-editor.dark-mode h4,
+  .ql-editor.dark-mode h5,
+  .ql-editor.dark-mode h6 {
+    color: #f3f4f6 !important;
   }
 
   .ql-toolbar {
-    @apply border-b-2 border-gray-300 dark:border-gray-600 rounded-t-lg bg-gray-50 dark:bg-slate-800;
+    @apply border-b-2 border-gray-300 rounded-t-lg bg-gray-50;
   }
 
-  .dark .ql-toolbar {
-    @apply bg-gray-800;
+  .ql-toolbar.dark-mode {
+    background-color: #1f2937 !important;
+    border-color: #4b5563 !important;
   }
 
   .ql-toolbar.ql-snow .ql-picker-label {
-    @apply text-gray-700 dark:text-gray-300;
+    @apply text-gray-700;
+  }
+
+  .ql-toolbar.dark-mode .ql-picker-label {
+    color: #d1d5db !important;
   }
 
   .ql-toolbar.ql-snow button,
@@ -41,26 +63,39 @@ const quillStyles = `
   }
 
   .ql-toolbar.ql-snow .ql-stroke {
-    @apply stroke-gray-600 dark:stroke-gray-400;
+    @apply stroke-gray-600;
+  }
+
+  .ql-toolbar.dark-mode .ql-stroke {
+    stroke: #9ca3af !important;
   }
 
   .ql-toolbar.ql-snow .ql-fill,
   .ql-toolbar.ql-snow .ql-stroke.ql-fill {
-    @apply fill-gray-600 dark:fill-gray-400;
+    @apply fill-gray-600;
+  }
+
+  .ql-toolbar.dark-mode .ql-fill,
+  .ql-toolbar.dark-mode .ql-stroke.ql-fill {
+    fill: #9ca3af !important;
   }
 
   .ql-editor.ql-blank::before {
-    @apply text-gray-400 dark:text-gray-500 italic;
+    @apply text-gray-400;
+  }
+
+  .ql-editor.dark-mode.ql-blank::before {
+    color: #6b7280 !important;
   }
 
   .ql-video {
     @apply rounded-lg;
   }
 
-  .ql-editor h1 { @apply text-3xl font-bold mb-2 mt-4 text-gray-900 dark:text-white; }
-  .ql-editor h2 { @apply text-2xl font-bold mb-2 mt-3 text-gray-800 dark:text-gray-200; }
-  .ql-editor h3 { @apply text-xl font-bold mb-2 mt-3 text-gray-800 dark:text-gray-200; }
-  .ql-editor blockquote { @apply border-l-4 border-primary-600 pl-4 italic text-gray-600 dark:text-gray-400; }
+  .ql-editor h1 { @apply text-3xl font-bold mb-2 mt-4 text-gray-900; }
+  .ql-editor h2 { @apply text-2xl font-bold mb-2 mt-3 text-gray-800; }
+  .ql-editor h3 { @apply text-xl font-bold mb-2 mt-3 text-gray-800; }
+  .ql-editor blockquote { @apply border-l-4 border-primary-600 pl-4 italic text-gray-600; }
   .ql-editor code-block { @apply bg-gray-900 text-gray-100 rounded p-2; }
 `;
 
@@ -72,9 +107,27 @@ if (typeof window !== 'undefined') {
 }
 
 const RichTextEditor = ({ value, onChange, placeholder = 'Write article content...' }) => {
-  const quillRef = useRef(null);
+  const containerRef = useRef(null);
+  const editorRef = useRef(null);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const { theme } = useTheme();
+
+  // Update Quill styling when theme changes
+  useEffect(() => {
+    if (containerRef.current) {
+      const editor = containerRef.current.querySelector('.ql-editor');
+      const toolbar = containerRef.current.querySelector('.ql-toolbar');
+      
+      if (theme === 'dark') {
+        editor?.classList.add('dark-mode');
+        toolbar?.classList.add('dark-mode');
+      } else {
+        editor?.classList.remove('dark-mode');
+        toolbar?.classList.remove('dark-mode');
+      }
+    }
+  }, [theme]);
 
   // Handle image insertion - URL only
   const handleImageInsert = () => {
@@ -83,7 +136,7 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Write article content.
 
   // Process image URL from modal
   const handleImageUrlSubmit = (url) => {
-    const editor = quillRef.current?.getEditor();
+    const editor = editorRef.current?.getEditor();
     if (editor) {
       const range = editor.getSelection(true);
       editor.insertEmbed(range.index, 'image', url);
@@ -92,7 +145,7 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Write article content.
     }
   };
 
-  // Handle video insertion (YouTube or URL)
+  // Handle video insertion (Google Drive)
   const handleVideoInsert = () => {
     setIsVideoModalOpen(true);
   };
@@ -101,8 +154,14 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Write article content.
   const handleVideoUrlSubmit = (url) => {
     let embedUrl = url;
     
-    // Handle YouTube URLs and convert to embed format
-    if (url.includes('youtube.com/watch')) {
+    // Convert Google Drive share link to embed format
+    if (url.includes('drive.google.com/file/d/')) {
+      // Extract file ID from: https://drive.google.com/file/d/FILE_ID/view
+      const fileId = url.split('/d/')[1]?.split('/')[0];
+      if (fileId) {
+        embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+      }
+    } else if (url.includes('youtube.com/watch')) {
       const videoId = url.split('v=')[1]?.split('&')[0];
       if (videoId) {
         embedUrl = `https://www.youtube.com/embed/${videoId}`;
@@ -121,7 +180,7 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Write article content.
     }
 
     try {
-      const editor = quillRef.current?.getEditor();
+      const editor = editorRef.current?.getEditor();
       if (!editor) {
         console.error('Editor not found');
         return;
@@ -211,15 +270,15 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Write article content.
           type="button" 
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700 active:scale-95 transition-all duration-300 font-semibold shadow-md hover:shadow-lg"
           onClick={handleVideoInsert}
-          title="Add YouTube Video"
+          title="Add Google Drive Video"
         >
           <Film size={18} />
           <span>Add Video</span>
         </button>
       </div>
-      <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+      <div ref={containerRef} className="border-2 border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
         <ReactQuill
-          ref={quillRef}
+          ref={editorRef}
           theme="snow"
           value={value}
           onChange={onChange}

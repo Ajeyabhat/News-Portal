@@ -327,12 +327,12 @@ const EditArticlePage = () => {
               </div>
             </div>
             <p className="text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
-              💡 Use the toolbar to format text, insert images, and embed videos
+              💡 Use the toolbar to format text, insert images, and embed Google Drive videos
             </p>
             <RichTextEditor 
               value={content}
               onChange={onContentChange}
-              placeholder="Write your article content... Include text, images, and YouTube videos!"
+              placeholder="Write your article content... Include text, images, and Google Drive videos!"
             />
           </div>
 

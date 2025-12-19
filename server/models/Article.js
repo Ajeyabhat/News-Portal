@@ -15,6 +15,11 @@ const ArticleSchema = new mongoose.Schema({
     required: true,
   },
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  wordSubmissionId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'WordSubmission',
+    optional: true
+  }, // Optional reference to source Word document
   media: [
     {
       type: { type: String, enum: ['image', 'video'], default: 'image' },

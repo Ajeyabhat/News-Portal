@@ -12,17 +12,20 @@ const AdminContentPage = () => {
   });
   const [content, setContent] = useState('');
   const [submissions, setSubmissions] = useState([]);
+  const [wordSubmissions, setWordSubmissions] = useState([]);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState(null);
   const [selectedSubmissionType, setSelectedSubmissionType] = useState(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [activeTab, setActiveTab] = useState('school');
   const [imageUploading, setImageUploading] = useState(false);
+  const [selectedWordSubmissionId, setSelectedWordSubmissionId] = useState(null);
 
   const fetchSubmissions = async () => {
     try {
-      const [submissionsRes, rawArticlesRes] = await Promise.all([
+      const [submissionsRes, rawArticlesRes, wordSubmissionsRes] = await Promise.all([
         axios.get('/api/submissions'),
-        axios.get('/api/submissions/raw-articles')
+        axios.get('/api/submissions/raw-articles'),
+        axios.get('/api/submissions/word/list')
       ]);
 
       const combined = [
@@ -31,6 +34,11 @@ const AdminContentPage = () => {
       ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       setSubmissions(combined);
+      
+      // Set Word submissions, sorted by creation date
+      const sortedWordSubmissions = (wordSubmissionsRes.data || [])
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setWordSubmissions(sortedWordSubmissions);
     } catch (err) {
       console.error('Error fetching submissions:', err.response ? err.response.data : err.message);
       toast.error('Failed to fetch articles');
@@ -99,6 +107,7 @@ const AdminContentPage = () => {
     setContent(isInstitutionSubmission ? (item.content || '') : '');
     setSelectedSubmissionId(item._id);
     setSelectedSubmissionType(item.type);
+    setSelectedWordSubmissionId(null); // Reset Word submission when curating
   };
 
   const onSubmit = async (e) => {
@@ -157,6 +166,7 @@ const AdminContentPage = () => {
         source: source.trim(),
         category: category.trim(),
         language,
+        wordSubmissionId: selectedWordSubmissionId || undefined, // Include Word doc link if selected
       };
 
       await axios.post('/api/articles', newArticle);
@@ -167,7 +177,11 @@ const AdminContentPage = () => {
           if (selectedSubmissionType === 'submission') {
             await axios.put(`/api/submissions/${selectedSubmissionId}`, { category: category.trim() });
           } else if (selectedSubmissionType === 'raw') {
-            await axios.put(`/api/submissions/raw-articles/${selectedSubmissionId}`, { category: category.trim() });
+            // Mark external article as published by setting status
+            await axios.put(`/api/submissions/raw-articles/${selectedSubmissionId}`, { 
+              category: category.trim(),
+              status: 'published'
+            });
           }
           
           // Immediately remove from submissions list
@@ -183,10 +197,17 @@ const AdminContentPage = () => {
       
       toast.success('Article published successfully!');
       
+      // Reset form completely for fresh article creation
+      console.log('🔄 Resetting form states after publish...');
       setFormData({ title: '', summary: '', imageUrl: '', videoUrl: '', source: '', category: '', language: 'en' });
       setContent('');
-      setSelectedSubmissionId(null);
+      setSelectedWordSubmissionId(null);
       setSelectedSubmissionType(null);
+      setSelectedSubmissionId(null); // Reset so dropdown shows again for next article
+      console.log('✅ Form states reset. selectedSubmissionId is now null');
+      
+      // Refresh submissions list to update Word docs status
+      fetchSubmissions();
 
     } catch (err) {
       console.error('Error publishing article:', err);
@@ -213,7 +234,35 @@ const AdminContentPage = () => {
 
   const schoolSubmissions = submissions.filter(s => s.type === 'submission');
   const externalSubmissions = submissions.filter(s => s.type === 'raw');
-  const activeSubmissions = activeTab === 'school' ? schoolSubmissions : externalSubmissions;
+  const pendingWordSubmissions = wordSubmissions.filter(w => w.status === 'pending');
+  
+  const activeSubmissions = 
+    activeTab === 'school' ? schoolSubmissions : 
+    activeTab === 'external' ? externalSubmissions :
+    pendingWordSubmissions;
+
+  const handleDownloadWordFile = async (wordSubmissionId, fileName) => {
+    try {
+      const response = await axios.get(`/api/submissions/word/download/${wordSubmissionId}`, {
+        responseType: 'blob'
+      });
+      
+      // Create blob and download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', fileName || 'document.docx');
+      document.body.appendChild(link);
+      link.click();
+      link.parentElement.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('File downloaded successfully!');
+    } catch (err) {
+      console.error('Download error:', err);
+      toast.error('Failed to download file');
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -229,19 +278,19 @@ const AdminContentPage = () => {
           </div>
         </div>
 
-        {/* Tabs - Improved */}
-        <div className="flex gap-2 mb-6 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-slate-800 dark:to-slate-700 rounded-lg p-2 shadow-sm">
+        {/* Tabs - Always visible, distributed equally */}
+        <div className="grid grid-cols-3 gap-2 mb-6">
           <button 
             onClick={() => setActiveTab('school')}
-            className={`flex-1 px-4 py-3 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${
+            className={`px-3 py-3 font-semibold rounded-lg transition-all duration-300 flex flex-col items-center justify-center gap-1 ${
               activeTab === 'school'
                 ? 'bg-gradient-to-r from-blue-600 to-teal-600 text-white shadow-lg'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+                : 'bg-gradient-to-r from-gray-100 to-gray-50 dark:from-slate-800 dark:to-slate-700 text-gray-700 dark:text-gray-300 hover:shadow-md'
             }`}
           >
-            <span>🏫</span>
-            <span>Institution</span>
-            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+            <span className="text-2xl">🏫</span>
+            <span className="text-sm font-bold">Institution</span>
+            <span className={`px-2 py-1 rounded-full text-xs font-bold ${
               activeTab === 'school'
                 ? 'bg-white/20'
                 : 'bg-gray-300 dark:bg-slate-600'
@@ -251,15 +300,15 @@ const AdminContentPage = () => {
           </button>
           <button 
             onClick={() => setActiveTab('external')}
-            className={`flex-1 px-4 py-3 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${
+            className={`px-3 py-3 font-semibold rounded-lg transition-all duration-300 flex flex-col items-center justify-center gap-1 ${
               activeTab === 'external'
                 ? 'bg-gradient-to-r from-blue-600 to-teal-600 text-white shadow-lg'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+                : 'bg-gradient-to-r from-gray-100 to-gray-50 dark:from-slate-800 dark:to-slate-700 text-gray-700 dark:text-gray-300 hover:shadow-md'
             }`}
           >
-            <span>📰</span>
-            <span>External</span>
-            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+            <span className="text-2xl">📰</span>
+            <span className="text-sm font-bold">External</span>
+            <span className={`px-2 py-1 rounded-full text-xs font-bold ${
               activeTab === 'external'
                 ? 'bg-white/20'
                 : 'bg-gray-300 dark:bg-slate-600'
@@ -267,44 +316,138 @@ const AdminContentPage = () => {
               {externalSubmissions.length}
             </span>
           </button>
+          <button 
+            onClick={() => setActiveTab('word')}
+            className={`px-3 py-3 font-semibold rounded-lg transition-all duration-300 flex flex-col items-center justify-center gap-1 ${
+              activeTab === 'word'
+                ? 'bg-gradient-to-r from-blue-600 to-teal-600 text-white shadow-lg'
+                : 'bg-gradient-to-r from-gray-100 to-gray-50 dark:from-slate-800 dark:to-slate-700 text-gray-700 dark:text-gray-300 hover:shadow-md'
+            }`}
+          >
+            <span className="text-2xl">📄</span>
+            <span className="text-sm font-bold">Word Docs</span>
+            <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+              activeTab === 'word'
+                ? 'bg-white/20'
+                : 'bg-gray-300 dark:bg-slate-600'
+            }`}>
+              {pendingWordSubmissions.length}
+            </span>
+          </button>
         </div>
 
         {/* Submissions List - Improved Layout */}
         <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
-          {activeSubmissions.length > 0 ? (
-            activeSubmissions.map(item => (
-              <div 
-                key={item._id} 
-                className="bg-white dark:bg-slate-800 rounded-xl p-4 hover:shadow-lg border-2 border-gray-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 cursor-pointer group"
-                onClick={() => handleCurate(item)}
-              >
-                {/* Type Badge - Top */}
-                <div className="mb-2">
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
-                    item.type === 'submission'
-                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                      : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
-                  }`}>
-                    {item.type === 'submission' ? '✓ Institution' : '📄 External'}
-                  </span>
-                </div>
-
-                {/* Header with Title */}
-                <div className="mb-3">
-                  <h3 className="font-bold text-gray-900 dark:text-white text-base line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    {item.title}
-                  </h3>
-                </div>
-
-                {/* Source and Date */}
-                <div className="flex flex-wrap items-center gap-3 mb-3 text-xs text-gray-600 dark:text-gray-400">
-                  <div className="flex items-center gap-1">
-                    <span className="font-semibold">From:</span>
-                    <span className="font-bold text-gray-800 dark:text-gray-300">{item.source}</span>
+          {activeTab === 'word' ? (
+            // Word submissions
+            pendingWordSubmissions.length > 0 ? (
+              pendingWordSubmissions.map(wordItem => (
+                <div 
+                  key={wordItem._id} 
+                  className="bg-white dark:bg-slate-800 rounded-xl p-4 hover:shadow-lg border-2 border-gray-200 dark:border-slate-700 hover:border-green-400 dark:hover:border-green-500 transition-all duration-300"
+                >
+                  {/* Status Badge */}
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                      📄 Word Document
+                    </span>
+                    <span className={`text-xs font-bold px-2 py-1 rounded ${
+                      wordItem.status === 'pending' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                      wordItem.status === 'reviewing' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                      wordItem.status === 'published' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                      'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                    }`}>
+                      {wordItem.status.charAt(0).toUpperCase() + wordItem.status.slice(1)}
+                    </span>
                   </div>
-                  <span className="text-gray-400">•</span>
-                  <span>{new Date(item.createdAt).toLocaleDateString('en-IN')}</span>
+
+                  {/* File Info */}
+                  <div className="mb-3">
+                    <h3 className="font-bold text-gray-900 dark:text-white mb-1">
+                      {wordItem.fileName}
+                    </h3>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      From: <strong>{wordItem.institutionName}</strong> • {new Date(wordItem.createdAt).toLocaleDateString('en-IN')}
+                    </p>
+                  </div>
+
+                  {/* Extracted Data Preview */}
+                  {wordItem.extractedData && (
+                    <div className="mb-3 bg-gray-50 dark:bg-slate-700/50 p-3 rounded border-l-2 border-green-500">
+                      {wordItem.extractedData.title && (
+                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">
+                          📌 {wordItem.extractedData.title}
+                        </p>
+                      )}
+                      {wordItem.extractedData.summary && (
+                        <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
+                          {wordItem.extractedData.summary}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Admin Notes */}
+                  {wordItem.adminNotes && (
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 italic">
+                      💬 Admin: {wordItem.adminNotes}
+                    </p>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 pt-3 border-t border-gray-200 dark:border-slate-600">
+                    <button 
+                      onClick={() => handleDownloadWordFile(wordItem._id, wordItem.fileName)}
+                      className="flex-1 px-3 py-2 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white text-sm font-bold rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+                    >
+                      ⬇️ Download
+                    </button>
+                  </div>
                 </div>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <FileText size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+                <p className="text-gray-500 dark:text-gray-400 font-semibold">No Word documents submitted</p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Institutions can upload .docx files for review</p>
+              </div>
+            )
+          ) : (
+            // Regular submissions (Institution and External)
+            activeSubmissions.length > 0 ? (
+              activeSubmissions.map(item => (
+                <div 
+                  key={item._id} 
+                  className="bg-white dark:bg-slate-800 rounded-xl p-4 hover:shadow-lg border-2 border-gray-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 cursor-pointer group"
+                  onClick={() => handleCurate(item)}
+                >
+                  {/* Type Badge - Top */}
+                  <div className="mb-2">
+                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
+                      item.type === 'submission'
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                        : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
+                    }`}>
+                      {item.type === 'submission' ? '✓ Institution' : '📄 External'}
+                    </span>
+                  </div>
+
+                  {/* Header with Title */}
+                  <div className="mb-3">
+                    <h3 className="font-bold text-gray-900 dark:text-white text-base line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      {item.title}
+                    </h3>
+                  </div>
+
+                  {/* Source and Date */}
+                  <div className="flex flex-wrap items-center gap-3 mb-3 text-xs text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center gap-1">
+                      <span className="font-semibold">From:</span>
+                      <span className="font-bold text-gray-800 dark:text-gray-300">{item.source}</span>
+                    </div>
+                    <span className="text-gray-400">•</span>
+                    <span>{new Date(item.createdAt).toLocaleDateString('en-IN')}</span>
+                  </div>
 
                 {/* Summary */}
                 {item.summary && (
@@ -338,12 +481,13 @@ const AdminContentPage = () => {
                 </div>
               </div>
             ))
-          ) : (
-            <div className="text-center py-12">
-              <Inbox size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-3" />
-              <p className="text-gray-500 dark:text-gray-400 font-semibold">No pending articles</p>
-              <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">All submissions have been reviewed</p>
-            </div>
+            ) : (
+              <div className="text-center py-12">
+                <Inbox size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+                <p className="text-gray-500 dark:text-gray-400 font-semibold">No pending articles</p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">All submissions have been reviewed</p>
+              </div>
+            )
           )}
         </div>
       </div>
@@ -454,7 +598,7 @@ const AdminContentPage = () => {
           {/* Video URL */}
           <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-5 space-y-2">
             <label htmlFor="videoUrl" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-              Video URL (Optional)
+              Video URL (Optional - Google Drive)
             </label>
             <input 
               id="videoUrl"
@@ -462,10 +606,10 @@ const AdminContentPage = () => {
               name="videoUrl" 
               value={videoUrl} 
               onChange={onChange}
-              placeholder="https://youtube.com/watch?v=... or https://example.com/video.mp4"
+              placeholder="https://drive.google.com/file/d/..."
               className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-600 transition-all"
             />
-            <p className="text-xs text-gray-600 dark:text-gray-400">Add YouTube link or direct video URL (optional)</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">Paste Google Drive shareable link (optional)</p>
           </div>
 
           {/* Summary */}
@@ -491,7 +635,7 @@ const AdminContentPage = () => {
               Full Article Content *
             </label>
             <p className="text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-2 rounded-lg">
-              Use the toolbar to format text, insert images, and embed videos
+              Use the toolbar to format text, insert images, and embed Google Drive videos
             </p>
             <RichTextEditor 
               value={content}
@@ -531,6 +675,29 @@ const AdminContentPage = () => {
               required 
               className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-600 transition-all"
             />
+          </div>
+
+          {/* Source Word Document - Always visible, optional for any article */}
+          <div className="bg-green-50 dark:bg-green-900/20 border-2 border-green-300 dark:border-green-700 rounded-xl shadow-sm p-5 space-y-2">
+            <label htmlFor="wordSubmission" className="block text-sm font-semibold text-green-900 dark:text-green-100">
+              📄 Link to Word Document (Optional)
+            </label>
+            <select 
+              id="wordSubmission"
+              value={selectedWordSubmissionId || ''}
+              onChange={(e) => setSelectedWordSubmissionId(e.target.value || null)}
+              className="w-full px-4 py-2 border-2 border-green-300 dark:border-green-600 rounded-lg bg-white dark:bg-green-900/30 text-gray-900 dark:text-white focus:outline-none focus:border-green-600 transition-all"
+            >
+              <option value="">-- None (Not from Word) --</option>
+              {wordSubmissions.filter(w => w.status === 'pending').map(doc => (
+                <option key={doc._id} value={doc._id}>
+                  📑 {doc.fileName} (from {doc.institutionName})
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-green-700 dark:text-green-300 mt-2">
+              If this article came from a Word document, select it here. The document will be marked as published.
+            </p>
           </div>
 
           {/* Submit Button */}
